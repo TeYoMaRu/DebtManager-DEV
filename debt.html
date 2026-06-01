@@ -3,36 +3,120 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>ระบบบริหารหนี้ส่วนตัว</title>
 
   <link rel="stylesheet" href="debt.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
 
+<body>
   <main class="app">
+
+    <!-- =========================================================
+      1) PAGE HEADER
+    ========================================================== -->
     <header class="page-header">
       <div>
         <h1>ระบบบริหารหนี้ส่วนตัว</h1>
-        <p>บันทึกหนี้ จ่ายต่อเดือน วันตัดยอด และยอดที่กดเพิ่ม</p>
+        <p>บันทึกหนี้ จ่ายต่อเดือน วันตัดยอด ยอดกดเพิ่ม และวางแผนเงินหมุนรายเดือน</p>
       </div>
     </header>
 
+
+    <!-- =========================================================
+      2) MAIN SUMMARY
+    ========================================================== -->
     <section class="summary-grid">
       <div class="card">
         <span>หนี้รวมทั้งหมด</span>
         <strong id="sumBalance">0</strong>
       </div>
+
       <div class="card">
         <span>ต้องจ่ายต่อเดือน</span>
         <strong id="sumMonthly">0</strong>
       </div>
+
       <div class="card danger">
         <span>กดเพิ่มเดือนนี้</span>
         <strong id="sumBorrowThisMonth">0</strong>
       </div>
+
+      <div class="card danger">
+        <span>คำขอที่อนุมัติแล้ว</span>
+        <strong id="dashApprovedRequests">0</strong>
+      </div>
     </section>
 
+
+    <!-- =========================================================
+      3) MONTHLY CASHFLOW SETTING
+    ========================================================== -->
+    <section class="panel">
+      <h2>ตั้งค่ารายได้และรายจ่ายเดือนนี้</h2>
+
+      <form id="cashflowForm" class="cashflow-form">
+        <input id="monthlyIncome" type="number" placeholder="รายได้เดือนนี้ เช่น 16000" required />
+        <input id="monthlyExpense" type="number" placeholder="ค่าใช้จ่ายครอบครัว เช่น 10000" required />
+        <button type="submit">คำนวณเดือนนี้</button>
+      </form>
+    </section>
+
+
+    <!-- =========================================================
+      4) MONTHLY CASHFLOW DASHBOARD
+    ========================================================== -->
+    <section class="summary-grid">
+      <div class="card">
+        <span>รายได้เดือนนี้</span>
+        <strong id="dashIncome">0</strong>
+      </div>
+
+      <div class="card">
+        <span>รายจ่ายรวมเดือนนี้</span>
+        <strong id="dashExpense">0</strong>
+      </div>
+
+      <div class="card danger">
+        <span>เงินเหลือ / ขาด</span>
+        <strong id="dashNet">0</strong>
+      </div>
+    </section>
+
+
+    <!-- =========================================================
+      5) CASHFLOW CALENDAR
+    ========================================================== -->
+    <section class="panel">
+      <h2>ปฏิทินเงินหมุนเดือนนี้</h2>
+
+      <div id="cashflowAlert" class="alert-box">
+        กรอกข้อมูลรายได้และรายจ่าย เพื่อดูสถานะเดือนนี้
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>วันที่</th>
+            <th>รายการ</th>
+            <th>เงินเข้า</th>
+            <th>เงินออก</th>
+            <th>คงเหลือ</th>
+          </tr>
+        </thead>
+        <tbody id="cashflowTable">
+          <tr>
+            <td colspan="5">ยังไม่มีข้อมูล</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+
+    <!-- =========================================================
+      6) DEBT LIST + ADD DEBT FORM
+    ========================================================== -->
     <section class="layout">
       <div class="panel">
         <h2>รายการหนี้สิน</h2>
@@ -60,7 +144,7 @@
         <h2>เพิ่มหนี้สิน</h2>
 
         <form id="debtForm">
-          <label>ประเภท</label>
+          <label for="debtType">ประเภท</label>
           <select id="debtType" required>
             <option value="credit_card">บัตรเครดิต</option>
             <option value="loan">สินเชื่อ</option>
@@ -68,30 +152,31 @@
             <option value="other">อื่น ๆ</option>
           </select>
 
-          <label>ชื่อบัตร / สินเชื่อ</label>
+          <label for="debtName">ชื่อบัตร / สินเชื่อ</label>
           <input id="debtName" required placeholder="เช่น บัตร A" />
 
-          <label>ยอดหนี้คงเหลือ</label>
+          <label for="balance">ยอดหนี้คงเหลือ</label>
           <input id="balance" type="number" required />
 
-          <label>จ่ายต่อเดือน</label>
+          <label for="monthlyPayment">จ่ายต่อเดือน</label>
           <input id="monthlyPayment" type="number" required />
 
           <div class="two-col">
             <div>
-              <label>วันตัดยอด</label>
+              <label for="statementDay">วันตัดยอด</label>
               <input id="statementDay" type="number" min="1" max="31" />
             </div>
+
             <div>
-              <label>วันครบกำหนด</label>
+              <label for="dueDay">วันครบกำหนด</label>
               <input id="dueDay" type="number" min="1" max="31" />
             </div>
           </div>
 
-          <label>ดอกเบี้ย (%) ถ้ามี</label>
+          <label for="interestRate">ดอกเบี้ย (%) ถ้ามี</label>
           <input id="interestRate" type="number" step="0.01" />
 
-          <label>หมายเหตุ</label>
+          <label for="note">หมายเหตุ</label>
           <textarea id="note" rows="3"></textarea>
 
           <button type="submit">บันทึกหนี้</button>
@@ -99,6 +184,10 @@
       </aside>
     </section>
 
+
+    <!-- =========================================================
+      7) DEBT TRANSACTION
+    ========================================================== -->
     <section class="panel">
       <h2>บันทึกรายการจ่าย / กดเพิ่ม</h2>
 
@@ -113,14 +202,304 @@
         </select>
 
         <input id="transactionAmount" type="number" required placeholder="จำนวนเงิน" />
-
         <input id="transactionDate" type="date" required />
-
         <input id="transactionNote" placeholder="หมายเหตุ เช่น ค่าอาหาร / ค่าน้ำมัน" />
 
         <button type="submit">บันทึกรายการ</button>
       </form>
     </section>
+
+
+    <!-- =========================================================
+      8) INSTALLMENT PLAN
+    ========================================================== -->
+    <section class="panel">
+      <h2>แผนผ่อนชำระ</h2>
+
+      <form id="installmentForm" class="installment-form">
+        <select id="installmentDebt" required></select>
+        <input id="installmentAmount" type="number" placeholder="ยอดที่ต้องการผ่อน" required />
+
+        <select id="installmentMonths" required>
+          <option value="2">ผ่อน 2 เดือน</option>
+          <option value="5">ผ่อน 5 เดือน</option>
+          <option value="10">ผ่อน 10 เดือน</option>
+        </select>
+
+        <input id="installmentStartDate" type="date" required />
+        <input id="installmentDueDay" type="number" min="1" max="31" placeholder="วันที่จ่าย" />
+
+        <button type="submit">สร้างแผนผ่อน</button>
+      </form>
+
+      <div id="installmentPreview" class="preview-box">
+        เลือกยอดและจำนวนเดือน เพื่อดูค่างวดต่อเดือน
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>หนี้</th>
+            <th>ยอดผ่อน</th>
+            <th>จำนวนเดือน</th>
+            <th>ค่างวด</th>
+            <th>เหลือ</th>
+            <th>สถานะ</th>
+          </tr>
+        </thead>
+        <tbody id="installmentList">
+          <tr>
+            <td colspan="6">ยังไม่มีแผนผ่อน</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+
+    <!-- =========================================================
+      9) DEBT HISTORY
+    ========================================================== -->
+    <section class="panel">
+      <h2>ประวัติรายการหนี้</h2>
+
+      <select id="historyDebtSelect"></select>
+
+      <table>
+        <thead>
+          <tr>
+            <th>วันที่</th>
+            <th>ประเภท</th>
+            <th>จำนวน</th>
+            <th>หมายเหตุ</th>
+          </tr>
+        </thead>
+        <tbody id="historyList">
+          <tr>
+            <td colspan="4">เลือกรายการหนี้เพื่อดูประวัติ</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+
+    <!-- =========================================================
+      10) FAMILY EXPENSE + MONEY REQUEST FORM
+    ========================================================== -->
+    <section class="layout">
+      <div class="panel">
+        <h2>รายจ่ายครอบครัว</h2>
+
+        <form id="familyExpenseForm" class="expense-form">
+          <input id="expenseDate" type="date" required />
+
+          <select id="expenseCategory" required>
+            <option value="food">อาหาร</option>
+            <option value="home">ของใช้ในบ้าน</option>
+            <option value="fuel">ค่าน้ำมัน / เดินทาง</option>
+            <option value="utility">ค่าน้ำ / ค่าไฟ</option>
+            <option value="child">ลูก / ค่าเรียน</option>
+            <option value="medical">ยา / รักษา</option>
+            <option value="other">อื่น ๆ</option>
+          </select>
+
+          <input id="expenseAmount" type="number" placeholder="จำนวนเงิน" required />
+          <input id="expenseNote" placeholder="หมายเหตุ" />
+
+          <button type="submit">บันทึกรายจ่าย</button>
+        </form>
+
+        <table>
+          <thead>
+            <tr>
+              <th>วันที่</th>
+              <th>หมวด</th>
+              <th>จำนวน</th>
+              <th>หมายเหตุ</th>
+            </tr>
+          </thead>
+          <tbody id="familyExpenseList">
+            <tr>
+              <td colspan="4">ยังไม่มีรายจ่าย</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <aside class="panel">
+        <h2>คนในบ้านขอใช้เงิน</h2>
+
+        <form id="moneyRequestForm">
+          <label for="requesterName">ชื่อผู้ขอ</label>
+          <input id="requesterName" required placeholder="เช่น แม่ / ลูก / บ้าน" />
+
+          <label for="requestItem">รายการที่ขอ</label>
+          <input id="requestItem" required placeholder="เช่น ซื้อของใช้" />
+
+          <label for="requestAmount">จำนวนเงิน</label>
+          <input id="requestAmount" type="number" required />
+
+          <label for="requestNecessity">ความจำเป็น</label>
+          <select id="requestNecessity">
+            <option value="necessary">จำเป็น</option>
+            <option value="normal">ปกติ</option>
+            <option value="not_necessary">ไม่จำเป็น</option>
+          </select>
+
+          <label for="requestNote">หมายเหตุ</label>
+          <textarea id="requestNote" rows="3"></textarea>
+
+          <button type="submit">บันทึกรายการขอเงิน</button>
+        </form>
+      </aside>
+    </section>
+
+
+    <!-- =========================================================
+      11) MONEY REQUEST SUMMARY
+    ========================================================== -->
+    <section class="panel">
+      <h2>สรุปรายการขอใช้เงิน</h2>
+
+      <div class="summary-grid">
+        <div class="card">
+          <span>รอพิจารณา</span>
+          <strong id="sumRequestPending">0</strong>
+        </div>
+
+        <div class="card danger">
+          <span>อนุมัติแล้วเดือนนี้</span>
+          <strong id="sumRequestApproved">0</strong>
+        </div>
+
+        <div class="card">
+          <span>ปฏิเสธแล้ว</span>
+          <strong id="sumRequestRejected">0</strong>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>วันที่</th>
+            <th>ผู้ขอ</th>
+            <th>รายการ</th>
+            <th>จำนวน</th>
+            <th>จำเป็น</th>
+            <th>สถานะ</th>
+            <th>จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="moneyRequestList">
+          <tr>
+            <td colspan="7">ยังไม่มีรายการขอใช้เงิน</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+
+    <!-- =========================================================
+      12) DEBT PRIORITY PLAN
+    ========================================================== -->
+    <section class="panel">
+      <h2>แผนตัดหนี้</h2>
+
+      <div class="debt-plan-grid">
+        <div class="card">
+          <span>หนี้ที่ควรจัดการก่อน</span>
+          <strong id="priorityDebtName">-</strong>
+        </div>
+
+        <div class="card">
+          <span>เหตุผล</span>
+          <strong id="priorityDebtReason">-</strong>
+        </div>
+
+        <div class="card danger">
+          <span>ยอดที่ต้องระวัง</span>
+          <strong id="priorityDebtAmount">0</strong>
+        </div>
+      </div>
+
+      <div class="plan-note">
+        ระบบนี้ช่วยจัดลำดับเบื้องต้นจากยอดหนี้ ยอดจ่ายต่อเดือน และรายการกดเพิ่ม
+        เพื่อให้เห็นว่าก้อนไหนกำลังทำให้เงินสดตึงที่สุด
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ลำดับ</th>
+            <th>หนี้</th>
+            <th>ยอดคงเหลือ</th>
+            <th>จ่าย/เดือน</th>
+            <th>กดเพิ่มเดือนนี้</th>
+            <th>คะแนนความเสี่ยง</th>
+            <th>คำแนะนำ</th>
+          </tr>
+        </thead>
+        <tbody id="debtPriorityList">
+          <tr>
+            <td colspan="7">ยังไม่มีข้อมูลสำหรับวิเคราะห์</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+
+    <!-- =========================================================
+      13) SURVIVAL SIMULATOR
+    ========================================================== -->
+    <section class="panel">
+      <h2>จำลองทางรอดรายเดือน</h2>
+
+      <div class="simulator-grid">
+        <div>
+          <label for="simReduceExpense">ลดรายจ่ายได้</label>
+          <input id="simReduceExpense" type="number" value="0" />
+        </div>
+
+        <div>
+          <label for="simIncreaseIncome">เพิ่มรายได้ได้</label>
+          <input id="simIncreaseIncome" type="number" value="0" />
+        </div>
+
+        <div>
+          <label for="simStopBorrow">หยุดกดบัตรได้</label>
+          <input id="simStopBorrow" type="number" value="0" />
+        </div>
+
+        <button type="button" onclick="renderSurvivalSimulator()">
+          จำลองผลลัพธ์
+        </button>
+
+        <button type="button" class="btn-soft" onclick="fillStopBorrowAmount()">
+          ใช้ยอดกดเพิ่มเดือนนี้
+        </button>
+      </div>
+
+      <div class="sim-result-grid">
+        <div class="card">
+          <span>สถานะปัจจุบัน</span>
+          <strong id="simCurrentNet">0</strong>
+        </div>
+
+        <div class="card">
+          <span>หลังปรับแผน</span>
+          <strong id="simNewNet">0</strong>
+        </div>
+
+        <div class="card danger">
+          <span>ดีขึ้น</span>
+          <strong id="simImprove">0</strong>
+        </div>
+      </div>
+
+      <div id="simulatorAdvice" class="plan-note">
+        กรอกตัวเลขเพื่อจำลองว่าเดือนนี้จะรอดไหม
+      </div>
+    </section>
+
   </main>
 
   <script src="debt.js"></script>

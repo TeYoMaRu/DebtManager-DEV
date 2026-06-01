@@ -179,3 +179,236 @@ button:hover {
     grid-template-columns: 1fr;
   }
 }
+
+
+
+.installment-form {
+  display: grid;
+  grid-template-columns: 1.2fr .8fr .7fr .8fr .6fr auto;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 14px;
+}
+
+.preview-box {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #075985;
+  padding: 14px;
+  border-radius: 14px;
+  margin-bottom: 14px;
+  font-weight: 700;
+}
+
+.badge-active {
+  color: #15803d;
+  background: #dcfce7;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.badge-closed {
+  color: #475569;
+  background: #e2e8f0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+@media (max-width: 900px) {
+  .installment-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+.cashflow-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.alert-box {
+  padding: 16px;
+  border-radius: 14px;
+  margin-bottom: 14px;
+  font-weight: 700;
+}
+
+.alert-safe {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.alert-danger {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+.text-income {
+  color: #16a34a;
+  font-weight: 700;
+}
+
+.text-out {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.text-negative {
+  color: #dc2626;
+  font-weight: 800;
+}
+
+@media (max-width: 900px) {
+  .cashflow-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+.expense-form {
+  display: grid;
+  grid-template-columns: .8fr 1fr .8fr 1.2fr auto;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 14px;
+}
+
+.badge-pending {
+  color: #92400e;
+  background: #fef3c7;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.badge-approved {
+  color: #166534;
+  background: #dcfce7;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.badge-rejected {
+  color: #991b1b;
+  background: #fee2e2;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.need-high {
+  color: #166534;
+  font-weight: 700;
+}
+
+.need-low {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.btn-approve {
+  background: #16a34a;
+}
+
+.btn-reject {
+  background: #ef4444;
+}
+
+.action-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+  .expense-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+.debt-plan-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.plan-note {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
+  font-weight: 600;
+}
+
+.risk-high {
+  color: #dc2626;
+  font-weight: 800;
+}
+
+.risk-medium {
+  color: #d97706;
+  font-weight: 800;
+}
+
+.risk-low {
+  color: #16a34a;
+  font-weight: 800;
+}
+
+@media (max-width: 900px) {
+  .debt-plan-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.simulator-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.simulator-grid label {
+  display: block;
+  margin-bottom: 6px;
+  color: #475569;
+  font-size: 13px;
+}
+
+.sim-result-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 900px) {
+  .simulator-grid,
+  .sim-result-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+.btn-soft {
+  background: #e0f2fe;
+  color: #075985;
+}
+
+.btn-soft:hover {
+  background: #bae6fd;
+}
