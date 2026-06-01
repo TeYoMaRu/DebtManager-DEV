@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ระบบบริหารหนี้ส่วนตัว</title>
+
+  <link rel="stylesheet" href="debt.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <main class="app">
+    <header class="page-header">
+      <div>
+        <h1>ระบบบริหารหนี้ส่วนตัว</h1>
+        <p>บันทึกหนี้ จ่ายต่อเดือน วันตัดยอด และยอดที่กดเพิ่ม</p>
+      </div>
+    </header>
+
+    <section class="summary-grid">
+      <div class="card">
+        <span>หนี้รวมทั้งหมด</span>
+        <strong id="sumBalance">0</strong>
+      </div>
+      <div class="card">
+        <span>ต้องจ่ายต่อเดือน</span>
+        <strong id="sumMonthly">0</strong>
+      </div>
+      <div class="card danger">
+        <span>กดเพิ่มเดือนนี้</span>
+        <strong id="sumBorrowThisMonth">0</strong>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <h2>รายการหนี้สิน</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ชื่อหนี้</th>
+              <th>ยอดคงเหลือ</th>
+              <th>จ่าย/เดือน</th>
+              <th>วันตัดยอด</th>
+              <th>ครบกำหนด</th>
+              <th>จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="debtList">
+            <tr>
+              <td colspan="6">กำลังโหลด...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <aside class="panel form-panel">
+        <h2>เพิ่มหนี้สิน</h2>
+
+        <form id="debtForm">
+          <label>ประเภท</label>
+          <select id="debtType" required>
+            <option value="credit_card">บัตรเครดิต</option>
+            <option value="loan">สินเชื่อ</option>
+            <option value="car">รถยนต์</option>
+            <option value="other">อื่น ๆ</option>
+          </select>
+
+          <label>ชื่อบัตร / สินเชื่อ</label>
+          <input id="debtName" required placeholder="เช่น บัตร A" />
+
+          <label>ยอดหนี้คงเหลือ</label>
+          <input id="balance" type="number" required />
+
+          <label>จ่ายต่อเดือน</label>
+          <input id="monthlyPayment" type="number" required />
+
+          <div class="two-col">
+            <div>
+              <label>วันตัดยอด</label>
+              <input id="statementDay" type="number" min="1" max="31" />
+            </div>
+            <div>
+              <label>วันครบกำหนด</label>
+              <input id="dueDay" type="number" min="1" max="31" />
+            </div>
+          </div>
+
+          <label>ดอกเบี้ย (%) ถ้ามี</label>
+          <input id="interestRate" type="number" step="0.01" />
+
+          <label>หมายเหตุ</label>
+          <textarea id="note" rows="3"></textarea>
+
+          <button type="submit">บันทึกหนี้</button>
+        </form>
+      </aside>
+    </section>
+
+    <section class="panel">
+      <h2>บันทึกรายการจ่าย / กดเพิ่ม</h2>
+
+      <form id="transactionForm" class="transaction-form">
+        <select id="transactionDebt" required></select>
+
+        <select id="transactionType" required>
+          <option value="payment">จ่ายหนี้</option>
+          <option value="borrow">กดเพิ่ม</option>
+          <option value="interest">ดอกเบี้ย/ค่าธรรมเนียม</option>
+          <option value="adjustment">ปรับยอด</option>
+        </select>
+
+        <input id="transactionAmount" type="number" required placeholder="จำนวนเงิน" />
+
+        <input id="transactionDate" type="date" required />
+
+        <input id="transactionNote" placeholder="หมายเหตุ เช่น ค่าอาหาร / ค่าน้ำมัน" />
+
+        <button type="submit">บันทึกรายการ</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="debt.js"></script>
+</body>
+</html>
