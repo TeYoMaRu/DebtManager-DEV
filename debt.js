@@ -166,7 +166,10 @@ async function renderBorrowThisMonth() {
 document.getElementById("debtForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  
+
   const payload = {
+    
     debt_type: document.getElementById("debtType").value,
     name: document.getElementById("debtName").value.trim(),
     balance: Number(document.getElementById("balance").value || 0),
