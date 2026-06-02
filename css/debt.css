@@ -412,3 +412,153 @@ button:hover {
 .btn-soft:hover {
   background: #bae6fd;
 }
+
+
+/* =========================================================
+   RESPONSIVE - Tablet First
+   ใช้ tablet แนวนอน / แนวตั้ง เป็นหลัก
+========================================================= */
+
+/* Tablet แนวนอน / จอเล็กกว่า Desktop */
+@media (max-width: 1180px) {
+  .app {
+    max-width: 100%;
+    padding: 18px;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .transaction-form,
+  .installment-form,
+  .cashflow-form,
+  .expense-form,
+  .simulator-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .transaction-form button,
+  .installment-form button,
+  .cashflow-form button,
+  .expense-form button,
+  .simulator-grid button {
+    width: 100%;
+  }
+
+  table {
+    min-width: 760px;
+  }
+
+  .panel {
+    overflow-x: auto;
+  }
+}
+
+/* Tablet แนวตั้ง */
+@media (max-width: 900px) {
+  .app {
+    padding: 14px;
+  }
+
+  .page-header {
+    padding: 22px;
+    border-radius: 18px;
+  }
+
+  .page-header h1 {
+    font-size: 24px;
+  }
+
+  .page-header p {
+    font-size: 14px;
+  }
+
+  .summary-grid,
+  .debt-plan-grid,
+  .sim-result-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .card strong {
+    font-size: 24px;
+  }
+
+  .panel {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .panel h2 {
+    font-size: 18px;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    min-height: 44px;
+    font-size: 15px;
+  }
+
+  th,
+  td {
+    padding: 12px 10px;
+    font-size: 13px;
+  }
+}
+
+/* มือถือ / จอแคบ */
+@media (max-width: 640px) {
+  .app {
+    padding: 10px;
+  }
+
+  .page-header {
+    padding: 18px;
+  }
+
+  .page-header h1 {
+    font-size: 21px;
+  }
+
+  .summary-grid,
+  .debt-plan-grid,
+  .sim-result-grid,
+  .transaction-form,
+  .installment-form,
+  .cashflow-form,
+  .expense-form,
+  .simulator-grid,
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+
+  .card strong {
+    font-size: 22px;
+  }
+
+  .panel {
+    padding: 14px;
+  }
+
+  table {
+    min-width: 720px;
+  }
+
+  .action-group {
+    flex-direction: column;
+  }
+
+  .btn-small {
+    width: 100%;
+  }
+}
