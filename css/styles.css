@@ -232,3 +232,10 @@ tbody tr:hover td{background:#fafbff}tbody tr:last-child td{border-bottom:0}
   .nav-item{padding:9px 2px}.nav-item::first-letter{font-size:18px}
   .filters{display:grid;grid-template-columns:1fr 1fr}.modal-backdrop{padding:10px}
 }
+
+/* Debt type form / debt management additions */
+.debt-type-fields{padding:14px;background:linear-gradient(180deg,#f8faff 0%,#f5f7fc 100%);border:1px solid var(--line);border-radius:16px}
+.subform-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.debt-card-actions{display:flex;justify-content:space-between;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.debt-card-actions .action-link{font-size:12px}
+@media(max-width:800px){.subform-grid{grid-template-columns:1fr}.debt-card-actions{align-items:flex-start;flex-direction:column}}
