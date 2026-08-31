@@ -153,11 +153,65 @@
       </section>
 
       <section id="rotation" class="page">
+        <article class="panel rotation-planner">
+          <div class="panel-head responsive">
+            <div>
+              <h3>🔄 วางแผนหมุนเงิน</h3>
+              <p>จำลองก่อนจ่ายจริง — เงินก้อนเดียวหมุนต่อได้ถึงไหน และเสียต้นทุนเท่าไร</p>
+            </div>
+            <button class="btn btn-secondary" id="useCurrentBalanceBtn">ใช้ยอดเงินจริงปัจจุบัน</button>
+          </div>
+
+          <div class="planner-start">
+            <div class="field">
+              <label for="rotationStartCash">เงินสดตั้งต้น</label>
+              <input id="rotationStartCash" type="number" step="0.01" value="0">
+            </div>
+            <div class="planner-hint">กรอกเฉพาะเงินที่คุณสามารถนำมาหมุนได้จริง ไม่รวมเงินที่กันไว้ใช้จำเป็น</div>
+          </div>
+
+          <div class="rotation-summary-grid">
+            <div><span>เงินตั้งต้น</span><strong id="planStartCash">฿0</strong></div>
+            <div><span>ยอดจ่ายผ่านทั้งหมด</span><strong id="planTotalPaid">฿0</strong></div>
+            <div><span>ดึงกลับทั้งหมด</span><strong id="planTotalBack">฿0</strong></div>
+            <div class="cost"><span>ต้นทุน/เงินหายจากการหมุน</span><strong id="planTotalCost">฿0</strong></div>
+            <div><span>หนี้ลดสุทธิโดยประมาณ</span><strong id="planNetDebtDrop">฿0</strong></div>
+            <div><span>เงินสดหลังจบรอบ</span><strong id="planEndCash">฿0</strong></div>
+          </div>
+
+          <div class="planner-toolbar">
+            <div>
+              <h4>เส้นทางเงิน</h4>
+              <small>เช่น เครดิต A → เครดิต B → ค่าใช้จ่ายที่ดึงกลับไม่ได้</small>
+            </div>
+            <button class="btn btn-primary" id="addRotationStepBtn">＋ เพิ่มรอบ</button>
+          </div>
+
+          <div id="rotationSteps" class="rotation-steps"></div>
+
+          <div id="rotationPlanStatus" class="situation-box"></div>
+
+          <div class="planner-actions">
+            <button class="btn btn-ghost" id="clearRotationPlanBtn">ล้างแผน</button>
+            <button class="btn btn-secondary" id="saveRotationPlanBtn">บันทึกแผนนี้</button>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>แผนที่บันทึกไว้</h3>
+              <p>เก็บไว้เปรียบเทียบก่อนตัดสินใจหมุนเงินจริง</p>
+            </div>
+          </div>
+          <div id="savedRotationPlans" class="saved-plan-list"></div>
+        </article>
+
         <article class="panel">
           <div class="panel-head">
             <div>
               <h3>เงินหมุน / เงินยืม</h3>
-              <p>รับมาเท่าไร ต้องคืนเมื่อไร และภาระจะไปตกที่เดือนไหน</p>
+              <p>รายการเงินที่รับเข้ามาจริงและมีภาระต้องคืน</p>
             </div>
           </div>
           <div id="rotationList" class="debt-grid"></div>

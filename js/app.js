@@ -104,14 +104,15 @@ function buildForm(){
 
   if(currentType==="debt"){
     dataForm.innerHTML = `
-      ${field("name","ชื่อหนี้ / ชื่อบัตร","text",'required placeholder="เช่น KTC / บัตร A / สินเชื่อ"')}
-      ${selectField("debtCalcType","ประเภทหนี้",[["credit_card","บัตรเครดิต"],["installment","ผ่อนคงที่"],["loan","สินเชื่อ / เงินกู้"],["statement","ยอดเรียกเก็บตามใบแจ้งหนี้"]])}
-      <div id="debtTypeFields" class="field full debt-type-fields"></div>
+      ${field("name","ชื่อหนี้","text",'required placeholder="เช่น บัตรเครดิต A"')}
+      ${field("totalDebt","ยอดหนี้ทั้งหมด","number",'min="0" step="0.01" required')}
+      ${field("monthlyAmount","ยอดที่จ่ายต่องวด","number",'min="0" step="0.01" required')}
+      ${field("dueDay","วันครบกำหนดของทุกเดือน","number",'min="1" max="31" required')}
+      ${field("months","จำนวนงวด / เดือน","number",'min="1" value="1" required')}
+      ${field("firstMonth","เริ่มงวดเดือน","month",`value="${y}-${m}" required`)}
       ${selectField("payer","ผู้จ่ายเจ้าหนี้",[["me","ฉัน"],["partner","แฟน"],["other","คนอื่น"]])}
+      <div class="field"><label>สร้างตารางผ่อน</label><select id="autoSchedule"><option value="yes">สร้างอัตโนมัติ</option><option value="no">ยังไม่สร้าง</option></select></div>
     `;
-    const debtTypeSelect = document.getElementById("debtCalcType");
-    debtTypeSelect.addEventListener("change",()=>buildDebtTypeFields(debtTypeSelect.value));
-    buildDebtTypeFields(debtTypeSelect.value);
   } else if(currentType==="shared"){
     dataForm.innerHTML = `
       ${field("name","ชื่อหนี้ร่วม","text",'required placeholder="เช่น หนี้ A"')}
@@ -159,55 +160,6 @@ function buildForm(){
   }
 }
 
-function buildDebtTypeFields(kind){
-  const box=document.getElementById("debtTypeFields");
-  if(!box) return;
-  const today=todayKey();
-  const y=new Date().getFullYear(), m=String(new Date().getMonth()+1).padStart(2,"0");
-  if(kind==="credit_card"){
-    box.innerHTML=`<div class="subform-grid">
-      ${field("openingBalance","ยอดหนี้คงเหลือเดิม","number",'min="0" step="0.01" required placeholder="ยอดหนี้ทั้งหมดก่อนจ่ายรอบนี้"')}
-      ${field("statementAmount","ยอดเรียกเก็บรอบนี้","number",'min="0" step="0.01" required')}
-      ${field("minimumPayment","ยอดขั้นต่ำ","number",'min="0" step="0.01" value="0"')}
-      ${field("plannedPayment","ยอดที่ตั้งใจจ่ายรอบนี้","number",'min="0" step="0.01" required')}
-      ${field("dueDate","วันครบกำหนดรอบนี้","date",`value="${today}" required`)}
-      ${field("statementDate","วันตัดรอบ (ถ้าทราบ)","date",'')}
-      <div class="field full"><small>บัตรเครดิตแต่ละใบคิดดอกเบี้ย/ยอดใหม่ต่างกัน แอปจะไม่เดาเอง เมื่อกดจ่ายแล้วสามารถใส่ “ยอดที่ตัดหนี้จริง” ได้</small></div>
-    </div>`;
-  }else if(kind==="installment"){
-    box.innerHTML=`<div class="subform-grid">
-      ${field("openingBalance","ยอดหนี้คงเหลือ","number",'min="0" step="0.01" required')}
-      ${field("monthlyAmount","ยอดผ่อนต่องวด","number",'min="0" step="0.01" required')}
-      ${field("dueDay","วันครบกำหนดทุกเดือน","number",'min="1" max="31" required')}
-      ${field("months","จำนวนงวดที่เหลือ","number",'min="1" value="1" required')}
-      ${field("firstMonth","เริ่มงวดเดือน","month",`value="${y}-${m}" required`)}
-      ${selectField("autoSchedule","สร้างตารางผ่อน",[["yes","สร้างอัตโนมัติ"],["no","ยังไม่สร้าง"]])}
-    </div>`;
-  }else if(kind==="loan"){
-    box.innerHTML=`<div class="subform-grid">
-      ${field("openingBalance","เงินต้น / ยอดคงเหลือ","number",'min="0" step="0.01" required')}
-      ${field("monthlyAmount","ยอดที่ต้องจ่ายต่องวด","number",'min="0" step="0.01" required')}
-      ${field("interestRate","ดอกเบี้ยต่อปี % (ถ้าทราบ)","number",'min="0" step="0.01" value="0"')}
-      ${field("dueDay","วันครบกำหนดทุกเดือน","number",'min="1" max="31" required')}
-      ${field("months","จำนวนงวดที่เหลือ","number",'min="1" value="1" required')}
-      ${field("firstMonth","เริ่มงวดเดือน","month",`value="${y}-${m}" required`)}
-      <div class="field full"><small>ยอดชำระอาจมีทั้งเงินต้นและดอกเบี้ย เวลาติ๊กจ่ายแล้ว แอปจะถามยอดที่ตัดจากหนี้จริง</small></div>
-    </div>`;
-  }else{
-    box.innerHTML=`<div class="subform-grid">
-      ${field("openingBalance","ยอดหนี้คงเหลือเดิม","number",'min="0" step="0.01" required')}
-      ${field("statementAmount","ยอดที่ต้องจ่ายรอบนี้","number",'min="0" step="0.01" required')}
-      ${field("dueDate","วันครบกำหนด","date",`value="${today}" required`)}
-      ${field("minimumPayment","ยอดขั้นต่ำ (ถ้ามี)","number",'min="0" step="0.01" value="0"')}
-      <div class="field full"><small>เหมาะกับเจ้าหนี้ที่ยอดแต่ละเดือนไม่เท่ากัน ให้กรอกตามใบแจ้งหนี้จริง</small></div>
-    </div>`;
-  }
-}
-
-function debtTypeLabel(kind){
-  return ({credit_card:"บัตรเครดิต",installment:"ผ่อนคงที่",loan:"สินเชื่อ / เงินกู้",statement:"ตามใบแจ้งหนี้"})[kind]||"หนี้";
-}
-
 function formData(){
   return Object.fromEntries(new FormData(dataForm).entries());
 }
@@ -233,47 +185,20 @@ function saveCurrent(closeAfter=true){
 
   if(currentType==="debt"){
     const debtId=uid("debt");
-    const calcType=d.debtCalcType||"installment";
-    const opening=Number(d.openingBalance||0);
-    const baseDebt={
-      id:debtId,name:d.name,totalDebt:opening,remaining:opening,payer:d.payer,
-      type:"debt",calcType,minimumPayment:Number(d.minimumPayment||0),
-      interestRate:Number(d.interestRate||0),createdAt:todayKey()
-    };
-
-    if(calcType==="credit_card"){
-      const planned=Number(d.plannedPayment||d.statementAmount||0);
-      Object.assign(baseDebt,{monthlyAmount:planned,statementAmount:Number(d.statementAmount||0),plannedPayment:planned,dueDate:d.dueDate,statementDate:d.statementDate||""});
-      state.debts.push(baseDebt);
-      state.payments.push({
-        id:uid("pay"),debtId,name:d.name,amount:planned,myShare:planned,partnerShare:0,partnerReceived:0,
-        dueDate:d.dueDate,paid:false,type:"debt",payer:d.payer,debtCalcType:calcType,
-        statementAmount:Number(d.statementAmount||0),minimumPayment:Number(d.minimumPayment||0),debtReduction:null
-      });
-    }else if(calcType==="statement"){
-      const amount=Number(d.statementAmount||0);
-      Object.assign(baseDebt,{monthlyAmount:amount,statementAmount:amount,dueDate:d.dueDate});
-      state.debts.push(baseDebt);
-      state.payments.push({
-        id:uid("pay"),debtId,name:d.name,amount,myShare:amount,partnerShare:0,partnerReceived:0,
-        dueDate:d.dueDate,paid:false,type:"debt",payer:d.payer,debtCalcType:calcType,
-        minimumPayment:Number(d.minimumPayment||0),debtReduction:null
-      });
-    }else{
-      const monthly=Number(d.monthlyAmount||0), months=Number(d.months||1);
-      Object.assign(baseDebt,{monthlyAmount:monthly,dueDay:Number(d.dueDay),months});
-      state.debts.push(baseDebt);
-      const auto = calcType==="installment" ? d.autoSchedule==="yes" : true;
-      if(auto){
-        for(let i=0;i<months;i++){
-          const ym=addMonthsToYM(d.firstMonth,i);
-          const amount=monthly;
-          state.payments.push({
-            id:uid("pay"),debtId,name:d.name,amount,myShare:amount,partnerShare:0,partnerReceived:0,
-            dueDate:makeDate(ym,d.dueDay),paid:false,type:"debt",payer:d.payer,debtCalcType:calcType,
-            debtReduction:calcType==="installment"?amount:null
-          });
-        }
+    const total=Number(d.totalDebt), monthly=Number(d.monthlyAmount), months=Number(d.months);
+    state.debts.push({
+      id:debtId,name:d.name,totalDebt:total,remaining:total,monthlyAmount:monthly,
+      dueDay:Number(d.dueDay),months,payer:d.payer,type:"debt",createdAt:todayKey()
+    });
+    if(d.autoSchedule==="yes"){
+      for(let i=0;i<months;i++){
+        const ym=addMonthsToYM(d.firstMonth,i);
+        const amount=i===months-1 ? Math.min(monthly,total-monthly*i>0?total-monthly*i:monthly) : monthly;
+        state.payments.push({
+          id:uid("pay"), debtId, name:d.name, amount:Number(amount),
+          myShare:Number(amount), partnerShare:0, partnerReceived:0,
+          dueDate:makeDate(ym,d.dueDay), paid:false, type:"debt", payer:d.payer
+        });
       }
     }
   }
@@ -444,26 +369,11 @@ function labelType(t){ return ({debt:"หนี้",shared:"หนี้ร่�
 
 window.togglePaid=function(id){
   const p=state.payments.find(x=>x.id===id); if(!p)return;
-  const willPay=!p.paid;
-  let reduction=Number(p.debtReduction ?? p.amount ?? 0);
-
-  if(willPay && p.debtId){
-    const d=state.debts.find(x=>x.id===p.debtId);
-    if(d && ["credit_card","loan","statement"].includes(d.calcType)){
-      const answer=prompt(`จ่าย ${p.name} ${money(p.amount)} แล้ว\n\nยอดที่ตัดจากหนี้จริงเท่าไร?\n(ดูจากใบแจ้งหนี้/แอปเจ้าหนี้ หากยังไม่แน่ใจใส่ยอดที่จ่ายก่อนได้)`, String(reduction));
-      if(answer===null) return;
-      const n=Number(answer);
-      if(!Number.isFinite(n) || n<0){ alert("กรุณาใส่ยอดตัดหนี้เป็นตัวเลข 0 ขึ้นไป"); return; }
-      reduction=n;
-      p.debtReduction=n;
-    }
-  }
-
-  p.paid=willPay;
+  p.paid=!p.paid;
   if(p.debtId){
     const d=state.debts.find(x=>x.id===p.debtId);
     if(d){
-      d.remaining=Math.max(0,Number(d.remaining)+(p.paid?-reduction:reduction));
+      d.remaining=Math.max(0,Number(d.remaining)+(p.paid?-Number(p.amount):Number(p.amount)));
     }
   }
   if(p.rotationId){
@@ -488,51 +398,18 @@ function renderDebts(){
   byId("debtCards").innerHTML=state.debts.length?state.debts.map(d=>{
     const paid=Math.max(0,Number(d.totalDebt)-Number(d.remaining));
     const pct=d.totalDebt?Math.min(100,(paid/d.totalDebt)*100):0;
-    const kind=d.type==="shared"?"หนี้ร่วม":debtTypeLabel(d.calcType);
-    const dueText=d.dueDate?thaiDate(d.dueDate):(d.dueDay?`ทุกวันที่ ${d.dueDay}`:"-");
-    const cycleAmount=Number(d.plannedPayment||d.statementAmount||d.monthlyAmount||0);
     return `<div class="debt-card">
-      <div class="debt-top"><div><h4>${d.name}</h4><p>${kind}</p></div><span class="tag ${d.type==="shared"?"shared":""}">${kind}</span></div>
+      <div class="debt-top"><div><h4>${d.name}</h4><p>${d.type==="shared"?"หนี้ร่วม":"หนี้ส่วนตัว"}</p></div><span class="tag ${d.type==="shared"?"shared":""}">${d.type==="shared"?"ร่วม":"หนี้"}</span></div>
       <div class="big">${money(d.remaining)}</div>
       <div class="progress"><span style="width:${pct}%"></span></div>
       <div class="debt-meta">
-        <div><small>ยอดหนี้ตั้งต้น</small><strong>${money(d.totalDebt)}</strong></div>
-        <div><small>ยอดรอบนี้ / ต่องวด</small><strong>${money(cycleAmount)}</strong></div>
-        <div><small>ขั้นต่ำ</small><strong>${d.minimumPayment?money(d.minimumPayment):"-"}</strong></div>
-        <div><small>ครบกำหนด</small><strong>${dueText}</strong></div>
-      </div>
-      <div class="debt-card-actions">
-        <button class="action-link" onclick="adjustDebtBalance('${d.id}')">ปรับยอดคงเหลือ</button>
-        ${d.calcType==="credit_card"||d.calcType==="statement"?`<button class="action-link" onclick="addDebtCycle('${d.id}')">เพิ่มยอดรอบใหม่</button>`:""}
+        <div><small>ยอดตั้งต้น</small><strong>${money(d.totalDebt)}</strong></div>
+        <div><small>จ่ายแล้ว</small><strong>${money(paid)}</strong></div>
+        <div><small>ต่องวด</small><strong>${money(d.monthlyAmount)}</strong></div>
+        <div><small>ผู้จ่าย</small><strong>${payerLabel(d.payer)}</strong></div>
       </div>
     </div>`;
   }).join(""):`<div class="empty">ยังไม่มีข้อมูลหนี้</div>`;
-}
-window.adjustDebtBalance=function(id){
-  const d=state.debts.find(x=>x.id===id); if(!d)return;
-  const answer=prompt(`ปรับยอดหนี้คงเหลือของ ${d.name}`,String(d.remaining||0));
-  if(answer===null)return;
-  const n=Number(answer); if(!Number.isFinite(n)||n<0){alert("กรุณาใส่ยอด 0 ขึ้นไป");return;}
-  d.remaining=n;
-  if(n>Number(d.totalDebt||0)) d.totalDebt=n;
-  saveState();renderAll();toast("ปรับยอดหนี้แล้ว");
-}
-window.addDebtCycle=function(id){
-  const d=state.debts.find(x=>x.id===id); if(!d)return;
-  const due=prompt(`วันครบกำหนดรอบใหม่ของ ${d.name} (YYYY-MM-DD)`, d.dueDate||todayKey());
-  if(!due)return;
-  const billed=prompt("ยอดเรียกเก็บตามใบแจ้งหนี้รอบนี้",String(d.statementAmount||d.monthlyAmount||0));
-  if(billed===null)return;
-  const bill=Number(billed); if(!Number.isFinite(bill)||bill<0){alert("ยอดไม่ถูกต้อง");return;}
-  let pay=bill;
-  if(d.calcType==="credit_card"){
-    const planned=prompt("ยอดที่ตั้งใจจ่ายรอบนี้",String(d.plannedPayment||bill));
-    if(planned===null)return;
-    pay=Number(planned); if(!Number.isFinite(pay)||pay<0){alert("ยอดไม่ถูกต้อง");return;}
-  }
-  state.payments.push({id:uid("pay"),debtId:d.id,name:d.name,amount:pay,myShare:pay,partnerShare:0,partnerReceived:0,dueDate:due,paid:false,type:"debt",payer:d.payer,debtCalcType:d.calcType,statementAmount:bill,minimumPayment:Number(d.minimumPayment||0),debtReduction:null});
-  d.statementAmount=bill; d.plannedPayment=pay; d.monthlyAmount=pay; d.dueDate=due;
-  saveState();renderAll();toast("เพิ่มยอดรอบใหม่แล้ว");
 }
 function payerLabel(p){return p==="me"?"ฉัน":p==="partner"?"แฟน":"คนอื่น";}
 
