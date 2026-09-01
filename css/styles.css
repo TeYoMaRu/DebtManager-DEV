@@ -185,3 +185,26 @@ th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left;font-size
 .loan-installment.is-paid{background:#ecfdf5;border-left-color:#10b981}
 .loan-installment small{display:block;color:var(--muted);margin-top:2px}
 @media(max-width:800px){.loan-round-head,.loan-installment{flex-direction:column}}
+
+
+/* Selective loan-round mode + restored actions */
+.card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.edit-btn,.delete-btn,.mode-btn,.mini-edit-btn,.mini-delete-btn{
+  border:0;border-radius:10px;font-weight:800;cursor:pointer;
+}
+.edit-btn{padding:9px 12px;background:#fff7e8;color:#a76200}
+.delete-btn{padding:9px 12px;background:#fff1f2;color:#be123c}
+.mode-btn{padding:9px 12px;background:#eef2ff;color:#4338ca}
+.mini-edit-btn,.mini-delete-btn{padding:5px 8px}
+.mini-edit-btn{background:#fff7e8;color:#a76200}
+.mini-delete-btn{background:#fff1f2;color:#be123c}
+.row-actions{display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.debt-card.kind-credit_card::before{background:#7c3aed}
+.debt-card.kind-installment::before{background:#2563eb}
+.debt-card.kind-loan::before{background:#0891b2}
+.debt-card.kind-statement::before{background:#ea580c}
+.debt-card.kind-shared::before{background:#d97706}
+@media(max-width:800px){
+  .card-actions{display:grid;grid-template-columns:1fr 1fr}
+  .card-actions>*{width:100%}
+}

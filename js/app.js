@@ -402,7 +402,7 @@ function renderPayments(){
     <div><strong>${p.name}</strong><br><small>${thaiDate(p.dueDate)} ${p.type==="shared"?`• ${p.partnerName||"ผู้ร่วมจ่าย"} ${money(p.partnerShare)}`:""}</small></div>
     <div class="hide-mobile"><span class="tag ${p.type==="shared"?"shared":""}">${labelType(p.type)}</span></div>
     <div class="hide-mobile">${p.paid?"จ่ายแล้ว":"ยังไม่จ่าย"}</div>
-    <div style="text-align:right"><strong>${money(p.amount)}</strong><br>${p.type==="shared"&&!p.paid?`<button class="action-link" onclick="receiveShared('${p.id}')">รับเงินร่วม</button>`:""}</div></div>`).join(""):`<div class="empty">ไม่มีรายการในเดือนนี้</div>`;
+    <div style="text-align:right"><strong>${money(p.amount)}</strong><br><div class="row-actions">${p.type==="shared"&&!p.paid?`<button class="action-link" onclick="receiveShared('${p.id}')">รับเงินร่วม</button>`:""}<button class="mini-edit-btn" onclick="editPayment('${p.id}')">✏️</button><button class="mini-delete-btn" onclick="deletePayment('${p.id}')">🗑️</button></div></div></div>`).join(""):`<div class="empty">ไม่มีรายการในเดือนนี้</div>`;
 }
 
 window.togglePaid=function(id){
@@ -422,7 +422,7 @@ window.togglePaid=function(id){
     const inst=round?.installments?.find(i=>i.id===p.loanInstallmentId);
     if(inst){inst.paid=p.paid;recalcDebtFromRounds(debt);}
   }
-  if(p.debtId){
+  if(p.debtId && !p.loanRoundId){
     const d=state.debts.find(x=>x.id===p.debtId);
     if(d){
       const reduction=p.debtReduction??num(p.amount);
@@ -455,17 +455,160 @@ window.addDebtBill=function(id){
   d.currentBill=num(amount);saveState();renderAll();toast("เพิ่มยอดรอบใหม่แล้ว");
 };
 
+
+function isSpecialLoanMode(d){
+  if(!d) return false;
+  if(d.loanRoundMode===true) return true;
+  if(Array.isArray(d.loanRounds) && d.loanRounds.length) return true;
+  return String(d.name||"").toLowerCase().includes("seasycash");
+}
+
+window.toggleLoanRoundMode=function(id){
+  const d=state.debts.find(x=>x.id===id); if(!d)return;
+  d.loanRoundMode=!isSpecialLoanMode(d);
+  if(d.loanRoundMode && !Array.isArray(d.loanRounds)) d.loanRounds=[];
+  saveState();renderAll();
+  toast(d.loanRoundMode?"เปิดใช้รูปแบบรอบกู้แล้ว":"กลับเป็นรูปแบบหนี้ปกติแล้ว");
+};
+
+window.editDebt=function(id){
+  const d=state.debts.find(x=>x.id===id); if(!d)return;
+  const name=prompt("ชื่อหนี้",d.name||""); if(name===null)return;
+  const total=prompt("ยอดตั้งต้น / ยอดรวม",String(d.totalDebt||0)); if(total===null)return;
+  const remaining=prompt("ยอดคงเหลือจริง",String(d.remaining||0)); if(remaining===null)return;
+  const current=prompt("ยอดรอบล่าสุด / ยอดที่ต้องจ่ายรอบนี้",String(d.currentBill||d.monthlyAmount||0)); if(current===null)return;
+  d.name=name.trim()||d.name;
+  d.totalDebt=Math.max(0,num(total));
+  d.remaining=Math.max(0,num(remaining));
+  d.currentBill=Math.max(0,num(current));
+  d.monthlyAmount=d.currentBill;
+
+  if(d.type==="shared"){
+    const my=prompt("ส่วนของฉัน",String(d.myShare||0)); if(my===null)return;
+    const partner=prompt(`ส่วนของ ${d.partnerName||"ผู้ร่วมจ่าย"}`,String(d.partnerShare||0)); if(partner===null)return;
+    d.myShare=Math.max(0,num(my));
+    d.partnerShare=Math.max(0,num(partner));
+  }
+  saveState();renderAll();toast("แก้ไขข้อมูลหนี้แล้ว");
+};
+
+window.deleteDebt=function(id){
+  const d=state.debts.find(x=>x.id===id); if(!d)return;
+  if(!confirm(`ลบ "${d.name}" และรายการจ่ายที่ผูกกับหนี้นี้ทั้งหมดใช่ไหม?`))return;
+  const payIds=state.payments.filter(p=>p.debtId===id).map(p=>p.id);
+  state.debts=state.debts.filter(x=>x.id!==id);
+  state.payments=state.payments.filter(p=>p.debtId!==id);
+  state.incomes=state.incomes.filter(x=>!payIds.includes(x.paymentId));
+  saveState();renderAll();toast("ลบหนี้แล้ว");
+};
+
+window.editPayment=function(id){
+  const p=state.payments.find(x=>x.id===id); if(!p)return;
+  const amount=prompt("ยอดที่ต้องจ่าย",String(p.amount||0)); if(amount===null)return;
+  const due=prompt("วันครบกำหนด (YYYY-MM-DD)",p.dueDate||todayKey()); if(due===null)return;
+  p.amount=Math.max(0,num(amount)); p.dueDate=due;
+  if(p.type==="shared"){
+    const my=prompt("ส่วนของฉัน",String(p.myShare||0)); if(my===null)return;
+    const partner=prompt(`ส่วนของ ${p.partnerName||"ผู้ร่วมจ่าย"}`,String(p.partnerShare||0)); if(partner===null)return;
+    p.myShare=Math.max(0,num(my)); p.partnerShare=Math.max(0,num(partner));
+  }
+  if(p.loanRoundId&&p.loanInstallmentId){
+    const d=state.debts.find(x=>x.id===p.debtId);
+    const r=d?.loanRounds?.find(x=>x.id===p.loanRoundId);
+    const i=r?.installments?.find(x=>x.id===p.loanInstallmentId);
+    if(i){ i.amount=p.amount; i.dueDate=p.dueDate; recalcDebtFromRounds(d); }
+  }
+  saveState();renderAll();toast("แก้ไขรายการจ่ายแล้ว");
+};
+
+window.deletePayment=function(id){
+  const p=state.payments.find(x=>x.id===id); if(!p)return;
+  if(!confirm(`ลบรายการ "${p.name}" ใช่ไหม?`))return;
+
+  if(p.loanRoundId&&p.loanInstallmentId){
+    const d=state.debts.find(x=>x.id===p.debtId);
+    const r=d?.loanRounds?.find(x=>x.id===p.loanRoundId);
+    if(r){
+      r.installments=(r.installments||[]).filter(x=>x.id!==p.loanInstallmentId);
+      r.installmentCount=r.installments.length;
+      r.installments.forEach((x,idx)=>x.no=idx+1);
+      r.totalRepayment=r.installments.reduce((s,x)=>s+num(x.amount),0);
+      r.totalInterest=r.installments.reduce((s,x)=>s+num(x.interest),0);
+      recalcDebtFromRounds(d);
+    }
+  }else if(p.paid&&p.debtId){
+    const d=state.debts.find(x=>x.id===p.debtId);
+    if(d) d.remaining=Math.max(0,num(d.remaining)+num(p.debtReduction??p.amount));
+  }
+  state.payments=state.payments.filter(x=>x.id!==id);
+  state.incomes=state.incomes.filter(x=>x.paymentId!==id);
+  saveState();renderAll();toast("ลบรายการจ่ายแล้ว");
+};
+
 function payerLabel(p){return p==="me"?"ฉัน":p==="partner"?"แฟน":"คนอื่น";}
 function debtKindLabel(k){return({credit_card:"บัตรเครดิต",installment:"ผ่อนคงที่",loan:"สินเชื่อ",statement:"ใบแจ้งหนี้"})[k]||"หนี้";}
 
 function renderDebts(){
   byId("debtCards").innerHTML=state.debts.length?state.debts.map(d=>{
-    const paid=Math.max(0,num(d.totalDebt)-num(d.remaining)),pct=d.totalDebt?Math.min(100,(paid/num(d.totalDebt))*100):0;
-    return `<div class="debt-card">
-      <div class="debt-top"><div><h4>${d.name}</h4><p>${d.type==="shared"?"หนี้ร่วม":debtKindLabel(d.debtKind)}</p></div><span class="tag ${d.type==="shared"?"shared":""}">${d.type==="shared"?"ร่วม":debtKindLabel(d.debtKind)}</span></div>
-      <div class="big">${money(d.remaining)}</div><div class="progress"><span style="width:${pct}%"></span></div>
-      <div class="debt-meta"><div><small>ยอดตั้งต้น</small><strong>${money(d.totalDebt)}</strong></div><div><small>จ่ายลดหนี้แล้ว</small><strong>${money(paid)}</strong></div><div><small>ยอดรอบล่าสุด</small><strong>${money(d.currentBill||d.monthlyAmount)}</strong></div><div><small>ผู้จ่าย</small><strong>${payerLabel(d.payer)}</strong></div></div>
-      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn btn-ghost" onclick="adjustDebtBalance('${d.id}')">ปรับยอดคงเหลือ</button><button class="btn btn-secondary" onclick="openLoanRoundModal('${d.id}')">＋ เพิ่มรอบกู้ใหม่</button>${d.type!=="shared"?`<button class="btn btn-secondary" onclick="addDebtBill('${d.id}')">＋ เพิ่มยอดรอบใหม่</button>`:""}</div>
+    const special=isSpecialLoanMode(d);
+    const paid=Math.max(0,num(d.totalDebt)-num(d.remaining));
+    const pct=d.totalDebt?Math.min(100,(paid/num(d.totalDebt))*100):0;
+    const isShared=d.type==="shared";
+    const kindClass=isShared?"shared":(d.debtKind||"installment");
+    const roundHtml=special && d.loanRounds?.length ? `
+      <div class="loan-rounds">
+        <div class="loan-rounds-title">รอบกู้ / สัญญาย่อย</div>
+        ${d.loanRounds.map(r=>`
+          <div class="loan-round">
+            <div class="loan-round-head">
+              <div>
+                <strong>${loanRoundLabel(r)}</strong>
+                <small>กู้ ${money(r.borrowedAmount)} • ดอกเบี้ย ${num(r.apr)}%/ปี</small>
+              </div>
+              <div class="row-actions">
+                <button class="edit-btn" onclick="editLoanRound('${d.id}','${r.id}')">✏️ แก้รอบ</button>
+                <button class="delete-btn" onclick="deleteLoanRound('${d.id}','${r.id}')">🗑️ ลบรอบ</button>
+              </div>
+            </div>
+            <div class="loan-installments">
+              ${(r.installments||[]).map(i=>`
+                <div class="loan-installment ${i.paid?"is-paid":""}">
+                  <div><b>งวด ${i.no}/${r.installmentCount||r.installments.length}</b><small>${thaiDate(i.dueDate)}</small></div>
+                  <div><b>${money(i.amount)}</b><small>ดอก ${money(i.interest)} • ต้น ${money(i.principal)}</small></div>
+                </div>`).join("")}
+            </div>
+          </div>`).join("")}
+      </div>`:"";
+
+    return `<div class="debt-card kind-${kindClass}">
+      <div class="debt-top">
+        <div><h4>${d.name}</h4><p>${isShared?"หนี้ร่วม":debtKindLabel(d.debtKind)}${special?' • แบบรอบกู้':''}</p></div>
+        <span class="tag ${isShared?"shared":""}">${special?"รอบกู้":(isShared?"ร่วม":debtKindLabel(d.debtKind))}</span>
+      </div>
+      <div class="big">${money(d.remaining)}</div>
+      <div class="progress"><span style="width:${pct}%"></span></div>
+      <div class="debt-meta">
+        <div><small>ยอดตั้งต้น</small><strong>${money(d.totalDebt)}</strong></div>
+        <div><small>จ่ายลดหนี้แล้ว</small><strong>${money(paid)}</strong></div>
+        <div><small>ยอดรอบล่าสุด</small><strong>${money(d.currentBill||d.monthlyAmount)}</strong></div>
+        <div><small>ผู้จ่าย</small><strong>${payerLabel(d.payer)}</strong></div>
+      </div>
+      ${roundHtml}
+      <div class="card-actions">
+        <button class="edit-btn" onclick="editDebt('${d.id}')">✏️ แก้ไข</button>
+        <button class="delete-btn" onclick="deleteDebt('${d.id}')">🗑️ ลบ</button>
+        <button class="btn btn-ghost" onclick="adjustDebtBalance('${d.id}')">ปรับยอดคงเหลือ</button>
+        ${special
+          ? `<button class="btn btn-secondary" onclick="openLoanRoundModal('${d.id}')">＋ เพิ่มรอบกู้ใหม่</button>`
+          : `<button class="btn btn-secondary" onclick="addDebtBill('${d.id}')">＋ เพิ่มยอดรอบใหม่</button>`
+        }
+        ${(!special && d.debtKind==="loan")
+          ? `<button class="mode-btn" onclick="toggleLoanRoundMode('${d.id}')">⚙️ ใช้แบบ SEasyCash</button>`
+          : (special && !String(d.name||"").toLowerCase().includes("seasycash")
+              ? `<button class="mode-btn" onclick="toggleLoanRoundMode('${d.id}')">↩️ ใช้แบบปกติ</button>`
+              : "")
+        }
+      </div>
     </div>`;
   }).join(""):`<div class="empty">ยังไม่มีข้อมูลหนี้</div>`;
 }
