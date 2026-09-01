@@ -18,8 +18,8 @@
         </div>
       </div>
 
-      <nav class="nav">
-        <button class="nav-item active" data-page="dashboard">🏠 ภาพรวม</button>
+      <nav class="nav" aria-label="หมวดหลัก">
+        <button class="nav-item active" data-page="dashboard" aria-current="page">🏠 ภาพรวม</button>
         <button class="nav-item" data-page="calendar">📅 รายการต้องจ่าย</button>
         <button class="nav-item" data-page="debts">💳 หนี้ทั้งหมด</button>
         <button class="nav-item" data-page="income">💵 เงินเข้า</button>
@@ -39,9 +39,12 @@
 
     <main class="main">
       <header class="topbar">
-        <div>
-          <h2 id="pageTitle">ภาพรวม</h2>
-          <p id="todayText"></p>
+        <div class="topbar-left">
+          <button class="menu-toggle" id="menuToggle" aria-label="เมนู">☰</button>
+          <div>
+            <h2 id="pageTitle">ภาพรวม</h2>
+            <p id="todayText"></p>
+          </div>
         </div>
         <div class="topbar-actions">
           <span class="cloud-status offline" id="cloudStatus">☁️ ยังไม่ได้เข้าสู่ระบบ</span>

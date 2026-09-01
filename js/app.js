@@ -157,8 +157,12 @@ const pageTitles={dashboard:"ภาพรวม",calendar:"รายการต
 
 document.querySelectorAll(".nav-item").forEach(btn=>{
   btn.addEventListener("click",()=>{
-    document.querySelectorAll(".nav-item").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".nav-item").forEach(b=>{
+      b.classList.remove("active");
+      b.removeAttribute("aria-current");
+    });
     btn.classList.add("active");
+    btn.setAttribute("aria-current","page");
     document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
     byId(btn.dataset.page).classList.add("active");
     byId("pageTitle").textContent=pageTitles[btn.dataset.page];
@@ -168,6 +172,38 @@ document.querySelectorAll(".nav-item").forEach(btn=>{
 });
 
 byId("todayText").textContent=new Date().toLocaleDateString("th-TH",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+
+/* ===== Keyboard Shortcuts ===== */
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){
+    const addModal=byId("addModal");
+    const authModal=byId("authModal");
+    if(!addModal?.classList.contains("hidden")) closeModal();
+    if(!authModal?.classList.contains("hidden")) closeAuth();
+  }
+  if((e.ctrlKey || e.metaKey) && e.key==="n"){
+    e.preventDefault();
+    if(!byId("addModal")?.classList.contains("hidden")) return;
+    openModal();
+  }
+});
+const sidebar=document.querySelector(".sidebar");
+const menuToggle=byId("menuToggle");
+if(menuToggle){
+  menuToggle.addEventListener("click",()=>{
+    sidebar.classList.toggle("show");
+  });
+  document.querySelectorAll(".nav-item").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      sidebar.classList.remove("show");
+    });
+  });
+  document.addEventListener("click",e=>{
+    if(!sidebar.contains(e.target)&&!menuToggle.contains(e.target)){
+      sidebar.classList.remove("show");
+    }
+  });
+}
 
 /* ===== Auth UI ===== */
 const authModal=byId("authModal");
