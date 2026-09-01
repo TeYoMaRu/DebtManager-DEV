@@ -174,3 +174,15 @@ th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left;font-size
   .planner-actions{display:grid;grid-template-columns:1fr 1fr}
   .saved-plan{align-items:flex-start;flex-direction:column}
 }
+\n\n/* ===== Edit + category highlight v2 ===== */
+.edit-btn{border:0;background:#fff7e8;color:#a76200;border-radius:10px;padding:9px 12px;font-weight:800;cursor:pointer}
+.edit-btn:hover{background:#ffedc8}
+.row-actions,.card-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.card-actions{margin-top:12px}
+.debt-card{position:relative;overflow:hidden}.debt-card::before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:#cbd5e1}
+.debt-card.kind-credit_card::before{background:#7c3aed}.debt-card.kind-installment::before{background:#2563eb}.debt-card.kind-loan::before{background:#0891b2}.debt-card.kind-statement::before{background:#ea580c}.debt-card.kind-shared::before{background:#d97706}.debt-card.kind-shared_installment::before{background:#16a34a}
+.debt-card.kind-credit_card .tag{background:#f3e8ff;color:#6b21a8}.debt-card.kind-installment .tag{background:#dbeafe;color:#1d4ed8}.debt-card.kind-loan .tag{background:#cffafe;color:#0e7490}.debt-card.kind-statement .tag{background:#ffedd5;color:#c2410c}.debt-card.kind-shared .tag{background:#fef3c7;color:#a16207}.debt-card.kind-shared_installment .tag{background:#dcfce7;color:#15803d}
+.payment-row.type-debt{border-left:5px solid #7c3aed}.payment-row.type-shared{border-left:5px solid #d97706}.payment-row.type-shared_installment{border-left:5px solid #16a34a}.payment-row.type-expense{border-left:5px solid #dc2626}.payment-row.type-rotation{border-left:5px solid #0891b2}
+#calendar .panel-head h3{background:#eef2ff;color:#3346b8;padding:7px 12px;border-radius:12px}#debts .panel-head h3{background:#f4ecff;color:#6d28d9;padding:7px 12px;border-radius:12px}#income .panel-head h3{background:#eafbf4;color:#0f7a50;padding:7px 12px;border-radius:12px}#rotation .panel-head h3{background:#fff3e8;color:#b45309;padding:7px 12px;border-radius:12px}#forecast .panel-head h3{background:#eaf6ff;color:#0369a1;padding:7px 12px;border-radius:12px}
+.installment-info{margin-top:12px;padding:12px;border-radius:12px;background:#f7fbf8;border:1px solid #d9f3df}.installment-info strong{color:#15803d}.installment-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}.installment-grid div{background:#fff;padding:9px;border-radius:9px;border:1px solid #e7efe9}.installment-grid small{display:block;color:var(--muted)}
+.income-kind-income{background:#eafbf4;color:#0f7a50}.income-kind-pass_through{background:#fff7e8;color:#a76200}.income-kind-rotation{background:#eaf6ff;color:#0369a1}.edit-form .field.full{grid-column:1/-1}
+@media(max-width:800px){.topbar-actions .cloud-status{display:none}.topbar-actions #accountBtn{display:inline-flex;padding:8px 10px}.row-actions,.card-actions{display:grid;grid-template-columns:1fr 1fr}.row-actions .btn,.row-actions .edit-btn,.card-actions .btn,.card-actions .edit-btn{width:100%}.installment-grid{grid-template-columns:1fr 1fr}}

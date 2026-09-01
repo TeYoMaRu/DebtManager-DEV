@@ -247,14 +247,19 @@ function buildForm(){
       <div class="field full"><small>ยอดหนี้คงเหลือ กับยอดที่ต้องจ่ายรอบนี้ แยกจากกัน เพื่อรองรับบัตรแต่ละใบที่คิดไม่เหมือนกัน</small></div>`;
   }else if(currentType==="shared"){
     dataForm.innerHTML=`
-      ${field("name","ชื่อหนี้ร่วม","text",'required')}
-      ${field("totalAmount","ยอดที่ต้องจ่ายรอบนี้","number",'min="0" step="0.01" required')}
-      ${field("myShare","ส่วนของฉัน","number",'min="0" step="0.01" required')}
-      ${field("partnerShare","ส่วนของแฟน / คนอื่น","number",'min="0" step="0.01" required')}
-      ${field("transferDate","วันที่อีกฝ่ายควรโอน","date",`value="${today}" required`)}
-      ${field("dueDate","วันที่ครบกำหนดเจ้าหนี้","date",`value="${today}" required`)}
+      ${selectField("sharedMode","รูปแบบหนี้ร่วม",[["one_time","ยอดร่วมครั้งเดียว"],["installment","ผ่อนร่วมคงที่ / มีจำนวนงวด"]])}
+      ${field("name","ชื่อหนี้ร่วม","text",'required placeholder="เช่น รถ / SEasyCash"')}
+      ${field("totalAmount","ยอดหนี้รวม / ยอดรอบนี้","number",'min="0" step="0.01" required')}
+      ${field("installmentAmount","ยอดต่องวด","number",'min="0" step="0.01" value="0"')}
+      ${field("installments","จำนวนงวดทั้งหมด","number",'min="1" value="1"')}
+      ${field("paidInstallments","จ่ายมาแล้วกี่งวด","number",'min="0" value="0"')}
+      ${field("myShare","ส่วนของฉันต่องวด","number",'min="0" step="0.01" required')}
+      ${field("partnerShare","ส่วนของแฟน / คนอื่นต่องวด","number",'min="0" step="0.01" required')}
+      ${field("transferDate","วันที่อีกฝ่ายควรโอนงวดแรก","date",`value="${today}" required`)}
+      ${field("dueDate","วันครบกำหนดงวดถัดไป","date",`value="${today}" required`)}
       ${selectField("payer","ผู้จ่ายเจ้าหนี้",[["me","ฉัน"],["partner","แฟน"],["other","คนอื่น"]])}
-      ${field("partnerName","ชื่อผู้ร่วมจ่าย","text",'value="แฟน"')}`;
+      ${field("partnerName","ชื่อผู้ร่วมจ่าย","text",'value="แฟน"')}
+      <div class="field full"><small>ถ้าเลือก “ผ่อนร่วมคงที่” ระบบจะสร้างงวดที่เหลือให้อัตโนมัติ</small></div>`;
   }else if(currentType==="income"){
     dataForm.innerHTML=`
       ${field("name","ชื่อเงินเข้า","text",'required placeholder="เช่น เงินเดือน"')}
@@ -284,6 +289,7 @@ function buildForm(){
 
 function formData(){return Object.fromEntries(new FormData(dataForm).entries());}
 function addMonthsToDate(ds,add){const d=parseDate(ds);d.setMonth(d.getMonth()+add);return isoDate(d);}
+function makeMonthlyDate(ds,add){const d=parseDate(ds);const day=d.getDate();const target=new Date(d.getFullYear(),d.getMonth()+add,1);const last=new Date(target.getFullYear(),target.getMonth()+1,0).getDate();target.setDate(Math.min(day,last));return isoDate(target);}
 
 function saveCurrent(closeAfter=true){
   const d=formData(); if(!dataForm.reportValidity())return;
@@ -302,9 +308,15 @@ function saveCurrent(closeAfter=true){
   }
 
   if(currentType==="shared"){
-    const debtId=uid("debt"), total=num(d.totalAmount);
-    state.debts.push({id:debtId,name:d.name,totalDebt:total,remaining:total,monthlyAmount:total,dueDay:parseDate(d.dueDate).getDate(),payer:d.payer,type:"shared",myShare:num(d.myShare),partnerShare:num(d.partnerShare),partnerName:d.partnerName});
-    state.payments.push({id:uid("pay"),debtId,name:d.name,amount:total,myShare:num(d.myShare),partnerShare:num(d.partnerShare),partnerReceived:0,partnerName:d.partnerName,transferDate:d.transferDate,dueDate:d.dueDate,paid:false,type:"shared",payer:d.payer});
+    const debtId=uid("debt"), mode=d.sharedMode||"one_time";
+    const total=num(d.totalAmount), instAmt=mode==="installment"?num(d.installmentAmount):total;
+    const installments=mode==="installment"?Math.max(1,num(d.installments)):1;
+    const paidInstallments=mode==="installment"?Math.min(installments,Math.max(0,num(d.paidInstallments))):0;
+    const remainingInstallments=Math.max(0,installments-paidInstallments);
+    state.debts.push({id:debtId,name:d.name,totalDebt:total,remaining:mode==="installment"?instAmt*remainingInstallments:total,monthlyAmount:instAmt,currentBill:instAmt,dueDay:parseDate(d.dueDate).getDate(),payer:d.payer,type:mode==="installment"?"shared_installment":"shared",sharedMode:mode,myShare:num(d.myShare),partnerShare:num(d.partnerShare),partnerName:d.partnerName,installments,paidInstallments,firstDueDate:d.dueDate,transferDate:d.transferDate});
+    if(mode==="installment"){
+      for(let i=0;i<remainingInstallments;i++) state.payments.push({id:uid("pay"),debtId,name:d.name,amount:instAmt,myShare:num(d.myShare),partnerShare:num(d.partnerShare),partnerReceived:0,partnerName:d.partnerName,transferDate:makeMonthlyDate(d.transferDate,i),dueDate:makeMonthlyDate(d.dueDate,i),paid:false,type:"shared_installment",payer:d.payer,installmentNo:paidInstallments+i+1,totalInstallments:installments});
+    }else state.payments.push({id:uid("pay"),debtId,name:d.name,amount:total,myShare:num(d.myShare),partnerShare:num(d.partnerShare),partnerReceived:0,partnerName:d.partnerName,transferDate:d.transferDate,dueDate:d.dueDate,paid:false,type:"shared",payer:d.payer});
   }
 
   if(currentType==="income") state.incomes.push({id:uid("inc"),name:d.name,amount:num(d.amount),date:d.date,kind:d.kind,note:d.note||"",received:true});
@@ -341,8 +353,8 @@ function getCurrentBalance(){
   const paid=state.payments.filter(x=>x.paid&&x.payer==="me").reduce((s,x)=>s+num(x.amount),0);
   return num(state.balanceAdjustment)+income-paid;
 }
-function effectiveMyBurden(p){return p.type==="shared"?(p.payer==="me"?num(p.myShare):0):(p.payer==="me"?num(p.amount):0);}
-function expectedPartner(p){return p.type==="shared"&&p.payer==="me"?Math.max(0,num(p.partnerShare)-num(p.partnerReceived)):0;}
+function effectiveMyBurden(p){return (p.type==="shared"||p.type==="shared_installment")?(p.payer==="me"?num(p.myShare):0):(p.payer==="me"?num(p.amount):0);}
+function expectedPartner(p){return (p.type==="shared"||p.type==="shared_installment")&&p.payer==="me"?Math.max(0,num(p.partnerShare)-num(p.partnerReceived)):0;}
 
 function renderDashboard(){
   const now=new Date(),ym=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
@@ -382,17 +394,17 @@ function renderMonthOptions(){
 }
 byId("calendarMonth").addEventListener("change",renderPayments);
 byId("calendarStatus").addEventListener("change",renderPayments);
-function labelType(t){return({debt:"หนี้",shared:"หนี้ร่วม",expense:"ค่าใช้จ่าย",rotation:"เงินหมุน"})[t]||t;}
+function labelType(t){return({debt:"หนี้",shared:"หนี้ร่วม",shared_installment:"ผ่อนร่วม",expense:"ค่าใช้จ่าย",rotation:"เงินหมุน"})[t]||t;}
 
 function renderPayments(){
   renderMonthOptions();const ym=byId("calendarMonth").value,status=byId("calendarStatus").value;
   let list=state.payments.filter(p=>monthKey(p.dueDate)===ym);if(status==="paid")list=list.filter(p=>p.paid);if(status==="unpaid")list=list.filter(p=>!p.paid);list.sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
-  byId("paymentList").innerHTML=list.length?list.map(p=>`<div class="payment-row ${p.paid?"paid":""} ${p.dueDate<todayKey()&&!p.paid?"overdue":""}">
+  byId("paymentList").innerHTML=list.length?list.map(p=>`<div class="payment-row type-${p.type} ${p.paid?"paid":""} ${p.dueDate<todayKey()&&!p.paid?"overdue":""}">
     <button class="check-btn ${p.paid?"done":""}" onclick="togglePaid('${p.id}')">${p.paid?"✓":""}</button>
-    <div><strong>${p.name}</strong><br><small>${thaiDate(p.dueDate)} ${p.type==="shared"?`• ${p.partnerName||"ผู้ร่วมจ่าย"} ${money(p.partnerShare)}`:""}</small></div>
-    <div class="hide-mobile"><span class="tag ${p.type==="shared"?"shared":""}">${labelType(p.type)}</span></div>
+    <div><strong>${p.name}</strong><br><small>${thaiDate(p.dueDate)} ${(p.type==="shared"||p.type==="shared_installment")?`• ${p.partnerName||"ผู้ร่วมจ่าย"} ${money(p.partnerShare)}${p.installmentNo?` • งวด ${p.installmentNo}/${p.totalInstallments}`:""}`:""}</small></div>
+    <div class="hide-mobile"><span class="tag ${(p.type==="shared"||p.type==="shared_installment")?"shared":""}">${labelType(p.type)}</span></div>
     <div class="hide-mobile">${p.paid?"จ่ายแล้ว":"ยังไม่จ่าย"}</div>
-    <div style="text-align:right"><strong>${money(p.amount)}</strong><br>${p.type==="shared"&&!p.paid?`<button class="action-link" onclick="receiveShared('${p.id}')">รับเงินร่วม</button>`:""}</div></div>`).join(""):`<div class="empty">ไม่มีรายการในเดือนนี้</div>`;
+    <div style="text-align:right"><strong>${money(p.amount)}</strong><br><div class="row-actions">${(p.type==="shared"||p.type==="shared_installment")&&!p.paid?`<button class="action-link" onclick="receiveShared('${p.id}')">รับเงินร่วม</button>`:""}<button class="edit-btn" onclick="openEdit('payment','${p.id}')">✏️ แก้ไข</button></div></div></div>`).join(""):`<div class="empty">ไม่มีรายการในเดือนนี้</div>`;
 }
 
 window.togglePaid=function(id){
@@ -411,6 +423,7 @@ window.togglePaid=function(id){
     if(d){
       const reduction=p.debtReduction??num(p.amount);
       d.remaining=Math.max(0,num(d.remaining)+(p.paid?-reduction:reduction));
+      if(d.type==="shared_installment") d.paidInstallments=Math.max(0,Math.min(num(d.installments),num(d.paidInstallments)+(p.paid?1:-1)));
     }
   }
   if(p.rotationId){const r=state.rotations.find(x=>x.id===p.rotationId);if(r)r.remaining=Math.max(0,num(r.remaining)+(p.paid?-num(p.amount):num(p.amount)));}
@@ -433,10 +446,28 @@ window.adjustDebtBalance=function(id){
 
 window.addDebtBill=function(id){
   const d=state.debts.find(x=>x.id===id);if(!d)return;
-  const amount=prompt(`ยอดที่ต้องจ่ายรอบใหม่ของ ${d.name}`,String(d.currentBill||d.monthlyAmount||0));if(amount===null)return;
-  const due=prompt("วันครบกำหนด (YYYY-MM-DD)",todayKey());if(!due)return;
-  state.payments.push({id:uid("pay"),debtId:d.id,name:d.name,amount:num(amount),myShare:num(amount),partnerShare:0,partnerReceived:0,dueDate:due,paid:false,type:"debt",payer:d.payer||"me",debtKind:d.debtKind,debtReduction:null});
-  d.currentBill=num(amount);saveState();renderAll();toast("เพิ่มยอดรอบใหม่แล้ว");
+  const amountRaw=prompt(`ยอดรอบใหม่ของ ${d.name}`,String(d.currentBill||d.monthlyAmount||0));if(amountRaw===null)return;
+  const total=num(amountRaw);if(total<=0)return toast("ยอดต้องมากกว่า 0");
+  const due=prompt("วันครบกำหนดงวดแรก (YYYY-MM-DD)",todayKey());if(!due)return;
+  if(d.type==="shared"||d.type==="shared_installment"){
+    const monthsRaw=prompt("ต้องการแบ่งจ่ายกี่เดือน? เช่น 1, 2, 3", "2");if(monthsRaw===null)return;
+    const months=Math.max(1,Math.floor(num(monthsRaw)||1));
+    const myRaw=prompt("ส่วนของฉัน รวมทั้งรอบ",String(d.myShare&&d.partnerShare? total*(num(d.myShare)/(num(d.myShare)+num(d.partnerShare))):total/2));if(myRaw===null)return;
+    const myTotal=Math.max(0,num(myRaw)), partnerTotal=Math.max(0,total-myTotal);
+    const each=total/months, myEach=myTotal/months, partnerEach=partnerTotal/months;
+    for(let i=0;i<months;i++){
+      const amt=i===months-1?total-each*(months-1):each;
+      const mine=i===months-1?myTotal-myEach*(months-1):myEach;
+      const partner=i===months-1?partnerTotal-partnerEach*(months-1):partnerEach;
+      state.payments.push({id:uid("pay"),debtId:d.id,name:d.name,amount:amt,myShare:mine,partnerShare:partner,partnerReceived:0,partnerName:d.partnerName||"แฟน",transferDate:makeMonthlyDate(due,i),dueDate:makeMonthlyDate(due,i),paid:false,type:"shared",payer:d.payer||"me",roundPart:i+1,roundParts:months});
+    }
+    d.remaining=num(d.remaining)+total;d.currentBill=each;d.monthlyAmount=each;d.myShare=myEach;d.partnerShare=partnerEach;
+    toast(`เพิ่มยอดรอบใหม่และแบ่ง ${months} เดือนแล้ว`);
+  }else{
+    state.payments.push({id:uid("pay"),debtId:d.id,name:d.name,amount:total,myShare:total,partnerShare:0,partnerReceived:0,dueDate:due,paid:false,type:"debt",payer:d.payer||"me",debtKind:d.debtKind,debtReduction:null});
+    d.currentBill=total;toast("เพิ่มยอดรอบใหม่แล้ว");
+  }
+  saveState();renderAll();
 };
 
 function payerLabel(p){return p==="me"?"ฉัน":p==="partner"?"แฟน":"คนอื่น";}
@@ -445,22 +476,25 @@ function debtKindLabel(k){return({credit_card:"บัตรเครดิต",i
 function renderDebts(){
   byId("debtCards").innerHTML=state.debts.length?state.debts.map(d=>{
     const paid=Math.max(0,num(d.totalDebt)-num(d.remaining)),pct=d.totalDebt?Math.min(100,(paid/num(d.totalDebt))*100):0;
-    return `<div class="debt-card">
-      <div class="debt-top"><div><h4>${d.name}</h4><p>${d.type==="shared"?"หนี้ร่วม":debtKindLabel(d.debtKind)}</p></div><span class="tag ${d.type==="shared"?"shared":""}">${d.type==="shared"?"ร่วม":debtKindLabel(d.debtKind)}</span></div>
+    const kindClass=d.type==="shared_installment"?"shared_installment":(d.type==="shared"?"shared":(d.debtKind||"installment"));
+    const title=d.type==="shared_installment"?"ผ่อนร่วมคงที่":(d.type==="shared"?"หนี้ร่วม":debtKindLabel(d.debtKind));
+    return `<div class="debt-card kind-${kindClass}">
+      <div class="debt-top"><div><h4>${d.name}</h4><p>${title}</p></div><span class="tag ${d.type==="shared"||d.type==="shared_installment"?"shared":""}">${d.type==="shared_installment"?"ผ่อนร่วม":(d.type==="shared"?"ร่วม":debtKindLabel(d.debtKind))}</span></div>
       <div class="big">${money(d.remaining)}</div><div class="progress"><span style="width:${pct}%"></span></div>
       <div class="debt-meta"><div><small>ยอดตั้งต้น</small><strong>${money(d.totalDebt)}</strong></div><div><small>จ่ายลดหนี้แล้ว</small><strong>${money(paid)}</strong></div><div><small>ยอดรอบล่าสุด</small><strong>${money(d.currentBill||d.monthlyAmount)}</strong></div><div><small>ผู้จ่าย</small><strong>${payerLabel(d.payer)}</strong></div></div>
-      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn btn-ghost" onclick="adjustDebtBalance('${d.id}')">ปรับยอดคงเหลือ</button>${d.type!=="shared"?`<button class="btn btn-secondary" onclick="addDebtBill('${d.id}')">＋ เพิ่มยอดรอบใหม่</button>`:""}</div>
+      ${d.type==="shared_installment"?`<div class="installment-info"><strong>ผ่อนร่วม ${num(d.paidInstallments)}/${num(d.installments)} งวด</strong><div class="installment-grid"><div><small>ต่องวด</small><b>${money(d.monthlyAmount)}</b></div><div><small>ส่วนของฉัน</small><b>${money(d.myShare)}</b></div><div><small>${d.partnerName||"ผู้ร่วมจ่าย"}</small><b>${money(d.partnerShare)}</b></div><div><small>เหลือ</small><b>${Math.max(0,num(d.installments)-num(d.paidInstallments))} งวด</b></div></div></div>`:""}
+      <div class="card-actions"><button class="edit-btn" onclick="openEdit('debt','${d.id}')">✏️ แก้ไข</button><button class="btn btn-ghost" onclick="adjustDebtBalance('${d.id}')">ปรับยอดคงเหลือ</button><button class="btn btn-secondary" onclick="addDebtBill('${d.id}')">＋ เพิ่มยอดรอบใหม่</button></div>
     </div>`;
   }).join(""):`<div class="empty">ยังไม่มีข้อมูลหนี้</div>`;
 }
 
 function renderIncome(){
   const list=[...state.incomes].sort((a,b)=>b.date.localeCompare(a.date));
-  byId("incomeList").innerHTML=list.length?`<table><thead><tr><th>วันที่</th><th>รายการ</th><th>ประเภท</th><th>จำนวน</th><th>หมายเหตุ</th></tr></thead><tbody>${list.map(x=>`<tr><td>${thaiDate(x.date)}</td><td>${x.name}</td><td>${x.kind==="income"?"รายได้จริง":x.kind==="rotation"?"เงินหมุน":"เงินผ่านมือ"}</td><td class="amount-success">${money(x.amount)}</td><td>${x.note||"-"}</td></tr>`).join("")}</tbody></table>`:`<div class="empty">ยังไม่มีข้อมูลเงินเข้า</div>`;
+  byId("incomeList").innerHTML=list.length?`<table><thead><tr><th>วันที่</th><th>รายการ</th><th>ประเภท</th><th>จำนวน</th><th>หมายเหตุ</th><th></th></tr></thead><tbody>${list.map(x=>`<tr><td>${thaiDate(x.date)}</td><td>${x.name}</td><td><span class="tag income-kind-${x.kind}">${x.kind==="income"?"รายได้จริง":x.kind==="rotation"?"เงินหมุน":"เงินผ่านมือ"}</span></td><td class="amount-success">${money(x.amount)}</td><td>${x.note||"-"}</td><td><button class="edit-btn" onclick="openEdit('income','${x.id}')">✏️ แก้ไข</button></td></tr>`).join("")}</tbody></table>`:`<div class="empty">ยังไม่มีข้อมูลเงินเข้า</div>`;
 }
 
 function renderRotations(){
-  byId("rotationList").innerHTML=state.rotations.length?state.rotations.map(r=>`<div class="debt-card"><h4>${r.name}</h4><p>รับ ${thaiDate(r.receiveDate)}</p><div class="big">${money(r.remaining)}</div><div class="debt-meta"><div><small>รับมา</small><strong>${money(r.received)}</strong></div><div><small>ต้องคืน</small><strong>${money(r.repayTotal)}</strong></div><div><small>เริ่มคืน</small><strong>${thaiDate(r.repayDate)}</strong></div><div><small>จำนวนงวด</small><strong>${r.installments}</strong></div></div></div>`).join(""):`<div class="empty">ยังไม่มีเงินหมุน / เงินยืม</div>`;
+  byId("rotationList").innerHTML=state.rotations.length?state.rotations.map(r=>`<div class="debt-card"><h4>${r.name}</h4><p>รับ ${thaiDate(r.receiveDate)}</p><div class="big">${money(r.remaining)}</div><div class="debt-meta"><div><small>รับมา</small><strong>${money(r.received)}</strong></div><div><small>ต้องคืน</small><strong>${money(r.repayTotal)}</strong></div><div><small>เริ่มคืน</small><strong>${thaiDate(r.repayDate)}</strong></div><div><small>จำนวนงวด</small><strong>${r.installments}</strong></div></div><div class="card-actions"><button class="edit-btn" onclick="openEdit('rotation','${r.id}')">✏️ แก้ไข</button></div></div>`).join(""):`<div class="empty">ยังไม่มีเงินหมุน / เงินยืม</div>`;
 }
 
 function renderForecast(){
@@ -523,6 +557,26 @@ function renderSavedPlans(){
   const list=[...state.rotationPlans].reverse();
   wrap.innerHTML=list.length?list.map(p=>`<div class="saved-plan"><div><strong>${new Date(p.createdAt).toLocaleString("th-TH")}</strong><br><small>เริ่ม ${money(p.startCash)} • จ่ายผ่าน ${money(p.totalPaid)} • ต้นทุน ${money(p.totalCost)} • เหลือ ${money(p.endCash)}</small></div><div><button class="btn btn-secondary" onclick="loadRotationPlan('${p.id}')">เปิดแผน</button> <button class="btn btn-ghost" onclick="deleteRotationPlan('${p.id}')">ลบ</button></div></div>`).join(""):`<div class="empty">ยังไม่มีแผนที่บันทึกไว้</div>`;
 }
+
+
+/* ===== Edit existing data v2 ===== */
+let editContext=null;const editModal=byId("editModal"),editForm=byId("editForm");
+function esc(v=""){return String(v??"").replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
+function editField(name,label,type="text",value="",extra=""){return `<div class="field"><label for="edit_${name}">${label}</label><input id="edit_${name}" name="${name}" type="${type}" value="${esc(value)}" ${extra}></div>`}
+function editSelect(name,label,value,options){return `<div class="field"><label for="edit_${name}">${label}</label><select id="edit_${name}" name="${name}">${options.map(o=>`<option value="${o[0]}" ${String(o[0])===String(value)?"selected":""}>${o[1]}</option>`).join("")}</select></div>`}
+function openEdit(kind,id){editContext={kind,id};let o=kind==="debt"?state.debts.find(x=>x.id===id):kind==="payment"?state.payments.find(x=>x.id===id):kind==="income"?state.incomes.find(x=>x.id===id):state.rotations.find(x=>x.id===id);if(!o)return toast("ไม่พบรายการ");
+ if(kind==="debt"){const sh=o.type==="shared"||o.type==="shared_installment";byId("editModalTitle").textContent="✏️ แก้ไขข้อมูลหนี้";editForm.innerHTML=`${editField("name","ชื่อหนี้","text",o.name,"required")}${!sh?editSelect("debtKind","ประเภทหนี้",o.debtKind||"installment",[["credit_card","บัตรเครดิต"],["installment","ผ่อนคงที่"],["loan","สินเชื่อ"],["statement","ใบแจ้งหนี้"]]):""}${editField("totalDebt","ยอดตั้งต้น / ยอดรวม","number",o.totalDebt,'min="0" step="0.01" required')}${editField("remaining","ยอดคงเหลือจริง","number",o.remaining,'min="0" step="0.01" required')}${editField("currentBill","ยอดรอบล่าสุด / ต่องวด","number",o.currentBill??o.monthlyAmount??0,'min="0" step="0.01"')}${sh?editField("myShare","ส่วนของฉันต่องวด","number",o.myShare||0,'min="0" step="0.01"'):""}${sh?editField("partnerShare","ส่วนของผู้ร่วมจ่ายต่องวด","number",o.partnerShare||0,'min="0" step="0.01"'):""}${sh?editField("partnerName","ชื่อผู้ร่วมจ่าย","text",o.partnerName||"แฟน"):""}${o.type==="shared_installment"?editField("installments","จำนวนงวดทั้งหมด","number",o.installments||1,'min="1"'):""}${o.type==="shared_installment"?editField("paidInstallments","จ่ายแล้วกี่งวด","number",o.paidInstallments||0,'min="0"'):""}${editSelect("payer","ผู้จ่ายเจ้าหนี้",o.payer||"me",[["me","ฉัน"],["partner","แฟน"],["other","คนอื่น"]])}`}
+ if(kind==="payment"){const sh=o.type==="shared"||o.type==="shared_installment";byId("editModalTitle").textContent="✏️ แก้ไขรายการต้องจ่าย";editForm.innerHTML=`${editField("name","ชื่อรายการ","text",o.name,"required")}${editField("amount","ยอดที่ต้องจ่าย","number",o.amount,'min="0" step="0.01" required')}${editField("dueDate","วันครบกำหนด","date",o.dueDate,"required")}${editSelect("payer","ผู้จ่ายเจ้าหนี้",o.payer||"me",[["me","ฉัน"],["partner","แฟน"],["other","คนอื่น"]])}${sh?editField("myShare","ส่วนของฉัน","number",o.myShare||0,'min="0" step="0.01"'):""}${sh?editField("partnerShare","ส่วนของผู้ร่วมจ่าย","number",o.partnerShare||0,'min="0" step="0.01"'):""}${sh?editField("partnerName","ชื่อผู้ร่วมจ่าย","text",o.partnerName||"แฟน"):""}${sh?editField("transferDate","วันที่ควรโอน","date",o.transferDate||o.dueDate):""}`}
+ if(kind==="income"){byId("editModalTitle").textContent="✏️ แก้ไขเงินเข้า";editForm.innerHTML=`${editField("name","ชื่อเงินเข้า","text",o.name,"required")}${editField("amount","จำนวนเงิน","number",o.amount,'min="0" step="0.01" required')}${editField("date","วันที่เงินเข้า","date",o.date,"required")}${editSelect("kind","ประเภท",o.kind||"income",[["income","รายได้จริง"],["pass_through","เงินผ่านมือ"],["rotation","เงินหมุน"]])}${editField("note","หมายเหตุ","text",o.note||"")}`}
+ if(kind==="rotation"){byId("editModalTitle").textContent="✏️ แก้ไขเงินหมุน";editForm.innerHTML=`${editField("name","ชื่อเงินหมุน","text",o.name,"required")}${editField("received","รับมา","number",o.received,'min="0" step="0.01" required')}${editField("receiveDate","วันที่รับ","date",o.receiveDate,"required")}${editField("repayTotal","ยอดต้องคืนทั้งหมด","number",o.repayTotal,'min="0" step="0.01" required')}${editField("remaining","ยอดคงเหลือที่ต้องคืน","number",o.remaining,'min="0" step="0.01" required')}${editField("repayDate","วันเริ่มคืน","date",o.repayDate,"required")}${editField("installments","จำนวนงวด","number",o.installments,'min="1" required')}`}
+ editModal.classList.remove("hidden")}
+function closeEdit(){editModal.classList.add("hidden");editContext=null}byId("closeEditBtn").onclick=closeEdit;byId("cancelEditBtn").onclick=closeEdit;editModal.addEventListener("click",e=>{if(e.target===editModal)closeEdit()});
+byId("saveEditBtn").onclick=()=>{if(!editContext||!editForm.reportValidity())return;const d=Object.fromEntries(new FormData(editForm).entries());
+ if(editContext.kind==="debt"){const x=state.debts.find(v=>v.id===editContext.id);x.name=d.name;if(d.debtKind)x.debtKind=d.debtKind;x.totalDebt=num(d.totalDebt);x.remaining=num(d.remaining);x.currentBill=num(d.currentBill);x.monthlyAmount=num(d.currentBill);x.payer=d.payer;if(x.type==="shared"||x.type==="shared_installment"){x.myShare=num(d.myShare);x.partnerShare=num(d.partnerShare);x.partnerName=d.partnerName||"แฟน"}if(x.type==="shared_installment"){x.installments=Math.max(1,num(d.installments));x.paidInstallments=Math.min(x.installments,Math.max(0,num(d.paidInstallments)))}}
+ if(editContext.kind==="payment"){const x=state.payments.find(v=>v.id===editContext.id);x.name=d.name;x.amount=num(d.amount);x.dueDate=d.dueDate;x.payer=d.payer;if(x.type==="shared"||x.type==="shared_installment"){x.myShare=num(d.myShare);x.partnerShare=num(d.partnerShare);x.partnerName=d.partnerName||"แฟน";x.transferDate=d.transferDate||d.dueDate}else x.myShare=num(d.amount)}
+ if(editContext.kind==="income"){const x=state.incomes.find(v=>v.id===editContext.id);x.name=d.name;x.amount=num(d.amount);x.date=d.date;x.kind=d.kind;x.note=d.note||""}
+ if(editContext.kind==="rotation"){const x=state.rotations.find(v=>v.id===editContext.id);x.name=d.name;x.received=num(d.received);x.receiveDate=d.receiveDate;x.repayTotal=num(d.repayTotal);x.remaining=num(d.remaining);x.repayDate=d.repayDate;x.installments=num(d.installments)}
+ saveState();renderAll();closeEdit();toast("แก้ไขข้อมูลแล้ว")};window.openEdit=openEdit;
 
 function renderAll(){renderDashboard();renderPayments();renderDebts();renderIncome();renderRotations();renderForecast();renderRotationPlanner();renderSavedPlans();}
 
