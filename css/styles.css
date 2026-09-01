@@ -28,12 +28,13 @@ button{cursor:pointer}
   background:#10182b;color:#fff;padding:26px 18px;display:flex;flex-direction:column;
   position:sticky;top:0;height:100vh;overflow-y:auto
 }
-.brand{display:flex;gap:12px;align-items:center;padding:0 8px 24px}
-.brand-logo{width:48px;height:48px;border-radius:12px;background:#fff;color:#10182b;display:flex;align-items:center;justify-content:center;font-size:25px;font-weight:800;flex-shrink:0;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.12);border:none;cursor:pointer;transition:var(--transition);padding:0}
-.brand-logo:hover{transform:scale(1.05);box-shadow:0 4px 12px rgba(0,0,0,.2)}
-.brand-logo:focus{outline:2px solid #fbbf24;outline-offset:2px}
-.brand-logo img{width:100%;height:100%;object-fit:contain;padding:4px;display:block}
-.brand h1{font-size:18px;margin:0;font-weight:800}.brand p{font-size:12px;margin:4px 0 0;color:#aeb7ca}
+.brand{display:flex;flex-direction:column;gap:14px;align-items:center;padding:24px 8px;text-align:center}
+.brand-logo{width:80px;height:80px;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:visible;border:none;cursor:pointer;transition:var(--transition);padding:0}
+.brand-logo:hover{transform:scale(1.1)}
+.brand-logo:focus{outline:2px solid #fbbf24;outline-offset:4px}
+.brand-logo img{width:100%;height:100%;object-fit:contain;display:block}
+.brand h1{font-size:20px;margin:0;font-weight:800;color:#fff;letter-spacing:-0.5px}
+.brand p{font-size:11px;margin:0;color:#aeb7ca;font-weight:500;letter-spacing:0.5px}
 .nav{display:flex;flex-direction:column;gap:8px}
 .nav-item{
   border:0;background:transparent;color:#cbd3e3;text-align:left;padding:13px 14px;border-radius:12px
