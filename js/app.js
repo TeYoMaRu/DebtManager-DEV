@@ -155,6 +155,15 @@ function toast(msg){ const t=byId("toast"); if(!t)return; t.textContent=msg;t.cl
 
 const pageTitles={dashboard:"ภาพรวม",calendar:"รายการต้องจ่าย",debts:"หนี้ทั้งหมด",income:"เงินเข้า",rotation:"เงินหมุน",forecast:"แผนล่วงหน้า"};
 
+/* ===== Logo Navigation ===== */
+const brandLogoBtn=byId("brandLogoBtn");
+if(brandLogoBtn){
+  brandLogoBtn.addEventListener("click",()=>{
+    const dashboardBtn=document.querySelector('[data-page="dashboard"]');
+    if(dashboardBtn) dashboardBtn.click();
+  });
+}
+
 document.querySelectorAll(".nav-item").forEach(btn=>{
   btn.addEventListener("click",()=>{
     document.querySelectorAll(".nav-item").forEach(b=>{
