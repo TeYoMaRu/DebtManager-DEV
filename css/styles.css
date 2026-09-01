@@ -27,8 +27,7 @@ button{cursor:pointer}
   position:sticky;top:0;height:100vh
 }
 .brand{display:flex;gap:12px;align-items:center;padding:0 8px 24px}
-.brand-logo{width:58px;height:58px;border-radius:16px;background:transparent;display:grid;place-items:center;overflow:visible;flex:0 0 58px}
-.brand-logo img{width:68px;height:68px;object-fit:contain;display:block;filter:drop-shadow(0 5px 10px rgba(0,0,0,.16))}
+.brand-logo{width:44px;height:44px;border-radius:14px;background:#fff;color:#10182b;display:grid;place-items:center;font-size:25px;font-weight:800}
 .brand h1{font-size:18px;margin:0}.brand p{font-size:12px;margin:4px 0 0;color:#aeb7ca}
 .nav{display:flex;flex-direction:column;gap:8px}
 .nav-item{
@@ -175,71 +174,14 @@ th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left;font-size
   .planner-actions{display:grid;grid-template-columns:1fr 1fr}
   .saved-plan{align-items:flex-start;flex-direction:column}
 }
-\n\n/* ===== Edit + category highlight v2 ===== */
-.edit-btn{border:0;background:#fff7e8;color:#a76200;border-radius:10px;padding:9px 12px;font-weight:800;cursor:pointer}
-.edit-btn:hover{background:#ffedc8}
-.row-actions,.card-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.card-actions{margin-top:12px}
-.debt-card{position:relative;overflow:hidden}.debt-card::before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:#cbd5e1}
-.debt-card.kind-credit_card::before{background:#7c3aed}.debt-card.kind-installment::before{background:#2563eb}.debt-card.kind-loan::before{background:#0891b2}.debt-card.kind-statement::before{background:#ea580c}.debt-card.kind-shared::before{background:#d97706}.debt-card.kind-shared_installment::before{background:#16a34a}
-.debt-card.kind-credit_card .tag{background:#f3e8ff;color:#6b21a8}.debt-card.kind-installment .tag{background:#dbeafe;color:#1d4ed8}.debt-card.kind-loan .tag{background:#cffafe;color:#0e7490}.debt-card.kind-statement .tag{background:#ffedd5;color:#c2410c}.debt-card.kind-shared .tag{background:#fef3c7;color:#a16207}.debt-card.kind-shared_installment .tag{background:#dcfce7;color:#15803d}
-.payment-row.type-debt{border-left:5px solid #7c3aed}.payment-row.type-shared{border-left:5px solid #d97706}.payment-row.type-shared_installment{border-left:5px solid #16a34a}.payment-row.type-expense{border-left:5px solid #dc2626}.payment-row.type-rotation{border-left:5px solid #0891b2}
-#calendar .panel-head h3{background:#eef2ff;color:#3346b8;padding:7px 12px;border-radius:12px}#debts .panel-head h3{background:#f4ecff;color:#6d28d9;padding:7px 12px;border-radius:12px}#income .panel-head h3{background:#eafbf4;color:#0f7a50;padding:7px 12px;border-radius:12px}#rotation .panel-head h3{background:#fff3e8;color:#b45309;padding:7px 12px;border-radius:12px}#forecast .panel-head h3{background:#eaf6ff;color:#0369a1;padding:7px 12px;border-radius:12px}
-.installment-info{margin-top:12px;padding:12px;border-radius:12px;background:#f7fbf8;border:1px solid #d9f3df}.installment-info strong{color:#15803d}.installment-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}.installment-grid div{background:#fff;padding:9px;border-radius:9px;border:1px solid #e7efe9}.installment-grid small{display:block;color:var(--muted)}
-.income-kind-income{background:#eafbf4;color:#0f7a50}.income-kind-pass_through{background:#fff7e8;color:#a76200}.income-kind-rotation{background:#eaf6ff;color:#0369a1}.edit-form .field.full{grid-column:1/-1}
-@media(max-width:800px){.topbar-actions .cloud-status{display:none}.topbar-actions #accountBtn{display:inline-flex;padding:8px 10px}.row-actions,.card-actions{display:grid;grid-template-columns:1fr 1fr}.row-actions .btn,.row-actions .edit-btn,.card-actions .btn,.card-actions .edit-btn{width:100%}.installment-grid{grid-template-columns:1fr 1fr}}
 
-/* ===== Dashboard KPI highlights ===== */
-.hero-grid .stat-card{
-  position:relative;
-  overflow:hidden;
-  border:1px solid transparent;
-  box-shadow:0 10px 26px rgba(32,47,78,.08);
-  transition:transform .18s ease, box-shadow .18s ease;
-}
-.hero-grid .stat-card::before{
-  content:"";
-  position:absolute;
-  left:0;top:0;right:0;
-  height:5px;
-  border-radius:18px 18px 0 0;
-}
-.hero-grid .stat-card:hover{
-  transform:translateY(-2px);
-  box-shadow:0 14px 30px rgba(32,47,78,.12);
-}
-.hero-grid .balance-card{
-  background:linear-gradient(145deg,#eef7ff 0%,#ffffff 68%);
-  border-color:#cfe7fb;
-}
-.hero-grid .balance-card::before{background:#2684d8}
-.hero-grid .balance-card > span{color:#286b9c;font-weight:700}
-.hero-grid .balance-card strong{color:#155e98}
-
-.hero-grid .due-card{
-  background:linear-gradient(145deg,#fff8e9 0%,#ffffff 68%);
-  border-color:#f2dfb2;
-}
-.hero-grid .due-card::before{background:#e7a51a}
-.hero-grid .due-card > span{color:#936714;font-weight:700}
-.hero-grid .due-card strong{color:#9a6500}
-
-.hero-grid .unpaid-card{
-  background:linear-gradient(145deg,#fff0f1 0%,#ffffff 68%);
-  border-color:#f3c8cd;
-}
-.hero-grid .unpaid-card::before{background:#df4d5b}
-.hero-grid .unpaid-card > span{color:#a73642;font-weight:700}
-.hero-grid .unpaid-card strong{color:#b12c39}
-
-.hero-grid .receive-card{
-  background:linear-gradient(145deg,#edf9f2 0%,#ffffff 68%);
-  border-color:#cce9d7;
-}
-.hero-grid .receive-card::before{background:#35a76f}
-.hero-grid .receive-card > span{color:#287a53;font-weight:700}
-.hero-grid .receive-card strong{color:#20734b}
-
-@media(max-width:800px){
-  .hero-grid .stat-card{padding:18px}
-  .hero-grid .stat-card strong{font-size:24px}
-}
+.loan-rounds{margin-top:14px;padding:12px;border-radius:14px;background:#f8fafc;border:1px solid #e7edf5}
+.loan-rounds-title{font-weight:900;margin-bottom:10px;color:#334155}
+.loan-round{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-top:10px}
+.loan-round-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.loan-round-head strong,.loan-round-head small{display:block}.loan-round-head small{color:var(--muted);margin-top:3px}
+.loan-installments{display:grid;gap:8px;margin-top:10px}
+.loan-installment{display:flex;justify-content:space-between;gap:12px;padding:9px 10px;border-radius:10px;background:#fff7ed;border-left:4px solid #f59e0b}
+.loan-installment.is-paid{background:#ecfdf5;border-left-color:#10b981}
+.loan-installment small{display:block;color:var(--muted);margin-top:2px}
+@media(max-width:800px){.loan-round-head,.loan-installment{flex-direction:column}}
