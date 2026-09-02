@@ -37,6 +37,7 @@
           <i class="ph ph-download-simple"></i> นำเข้าข้อมูล
           <input type="file" id="importInput" accept=".json" hidden />
         </label>
+        <button class="btn btn-secondary btn-full" id="startFreshBtn"><i class="ph ph-calendar-plus"></i> เริ่มใช้งานรอบใหม่</button>
         <button class="btn btn-danger-soft btn-full" id="resetBtn"><i class="ph ph-trash"></i> ล้างข้อมูลทั้งหมด</button>
       </div>
     </aside>
@@ -79,6 +80,7 @@
       </header>
 
       <section id="dashboard" class="page active">
+        <div id="startModeBanner" class="start-mode-banner hidden"></div>
         <div class="hero-grid">
           <article class="stat-card balance-card">
             <span>ยอดเงินจริงปัจจุบัน</span>
@@ -343,6 +345,14 @@
           <input type="file" id="moreImportInput" accept=".json" hidden />
         </label>
 
+        <button class="more-item start-fresh-item" id="moreStartFreshBtn">
+          <span class="more-item-icon"><i class="ph ph-calendar-plus"></i></span>
+          <div class="more-item-info">
+            <strong>เริ่มใช้งานรอบใหม่</strong>
+            <small>กำหนดวันเริ่มต้นและยอดเงินจริงใหม่</small>
+          </div>
+        </button>
+
         <button class="more-item danger" id="moreResetBtn">
           <span class="more-item-icon"><i class="ph ph-trash"></i></span>
           <div class="more-item-info">
@@ -350,6 +360,56 @@
             <small>ล้างข้อมูลในเครื่องเพื่อเริ่มใหม่</small>
           </div>
         </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Start Fresh / Opening Balance Setup -->
+  <div class="modal-backdrop hidden" id="startFreshModal">
+    <div class="modal start-fresh-modal">
+      <div class="modal-head">
+        <div>
+          <h3><i class="ph ph-calendar-plus"></i> เริ่มใช้งานรอบใหม่</h3>
+          <p>เหมาะสำหรับเริ่มใช้จริงเดือนหน้า โดยไม่ต้องย้อนกรอกรายการที่จ่ายไปแล้ว</p>
+        </div>
+        <button class="icon-btn" id="closeStartFreshBtn" type="button"><i class="ph ph-x"></i></button>
+      </div>
+
+      <div class="start-fresh-guide">
+        <div class="guide-step"><span>1</span><div><strong>กำหนดวันเริ่มใช้</strong><small>แนะนำวันที่ 1 ของเดือนหน้า</small></div></div>
+        <div class="guide-step"><span>2</span><div><strong>ใส่ยอดเงินจริง ณ วันเริ่ม</strong><small>รวมเฉพาะเงินที่พร้อมใช้จริง</small></div></div>
+        <div class="guide-step"><span>3</span><div><strong>ค่อยเพิ่มหนี้ที่ยังเหลือ</strong><small>ไม่ต้องกรอกประวัติเดือนที่ผ่านไปแล้ว</small></div></div>
+      </div>
+
+      <div class="start-fresh-warning">
+        <i class="ph ph-warning-circle"></i>
+        <div>
+          <strong>การเริ่มรอบใหม่จะล้างรายการเดิมใน My Money Flow</strong>
+          <small>แนะนำให้กด “สำรองข้อมูลเดิม” ก่อน ระบบจะไม่แตะบัญชี Supabase หรือการเข้าสู่ระบบ แต่ข้อมูลการเงินชุดใหม่จะซิงก์แทนชุดเดิมเมื่อบันทึก</small>
+        </div>
+      </div>
+
+      <div class="form-grid start-fresh-form">
+        <div class="field">
+          <label for="freshStartDate">วันที่เริ่มใช้จริง</label>
+          <input id="freshStartDate" type="date" required>
+        </div>
+        <div class="field">
+          <label for="freshOpeningBalance">ยอดเงินจริง ณ วันเริ่มต้น</label>
+          <input id="freshOpeningBalance" type="number" inputmode="decimal" step="0.01" value="0">
+          <small>เช่น เงินในบัญชี + เงินสดที่นำมาใช้จ่ายได้จริง</small>
+        </div>
+      </div>
+
+      <label class="fresh-confirm">
+        <input type="checkbox" id="freshConfirmCheck">
+        <span>ฉันเข้าใจว่าจะเริ่มข้อมูลการเงินใหม่ และจะกรอกเฉพาะหนี้/ภาระที่ยังเหลือตั้งแต่วันเริ่มต้น</span>
+      </label>
+
+      <div class="modal-actions start-fresh-actions">
+        <button class="btn btn-ghost" id="backupBeforeFreshBtn" type="button"><i class="ph ph-floppy-disk"></i> สำรองข้อมูลเดิม</button>
+        <button class="btn btn-primary" id="confirmStartFreshBtn" type="button"><i class="ph ph-play-circle"></i> เริ่มรอบใหม่</button>
       </div>
     </div>
   </div>

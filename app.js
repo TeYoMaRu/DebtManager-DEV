@@ -13,6 +13,8 @@ let authMode = "login";
 function defaultState(){
   return {
     balanceAdjustment:0,
+    startDate:"",
+    setupCompleted:false,
     debts:[],
     payments:[],
     incomes:[],
@@ -94,6 +96,7 @@ async function loadCloudState(){
 
   if(data?.data){
     replaceState(data.data);
+    renderMonthOptions(true);
     renderAll();
     setCloudStatus("online","ซิงก์แล้ว");
     if(data.updated_at && byId("lastSyncText")){
@@ -158,6 +161,26 @@ function num(v){ return Number(v||0); }
 function money(n){ return new Intl.NumberFormat("th-TH",{style:"currency",currency:"THB",maximumFractionDigits:0}).format(num(n)); }
 function isoDate(d=new Date()){ const z=new Date(d.getTime()-d.getTimezoneOffset()*60000); return z.toISOString().slice(0,10); }
 function todayKey(){ return isoDate(); }
+function nextMonthStart(){
+  const d=new Date();
+  d.setDate(1);
+  d.setMonth(d.getMonth()+1);
+  return isoDate(d);
+}
+function effectiveStartDate(){
+  return state.startDate || "";
+}
+function planningDateKey(){
+  const start=effectiveStartDate();
+  return start && start>todayKey() ? start : todayKey();
+}
+function activeMonthKey(){
+  return monthKey(planningDateKey());
+}
+function isBeforeStart(){
+  const start=effectiveStartDate();
+  return !!start && todayKey()<start;
+}
 function parseDate(s){ return new Date(`${s}T00:00:00`); }
 function monthKey(s){ return s?.slice(0,7)||""; }
 function thaiDate(s){ return s?parseDate(s).toLocaleDateString("th-TH",{day:"numeric",month:"short",year:"2-digit"}):"-"; }
@@ -690,23 +713,45 @@ function saveCurrent(closeAfter=true){
 byId("saveBtn").onclick=()=>saveCurrent(true);
 byId("saveAndContinueBtn").onclick=()=>saveCurrent(false);
 
-function getCurrentBalance(){
-  const income=state.incomes.filter(x=>x.received).reduce((s,x)=>s+num(x.amount),0);
-  const paid=state.payments.filter(x=>x.paid&&x.payer==="me").reduce((s,x)=>s+num(x.amount),0);
+function getCurrentBalance(asOf=planningDateKey()){
+  const start=effectiveStartDate();
+  const income=state.incomes
+    .filter(x=>x.received && (!start || !x.date || x.date>=start) && (!x.date || x.date<=asOf))
+    .reduce((s,x)=>s+num(x.amount),0);
+  const paid=state.payments
+    .filter(x=>x.paid && x.payer==="me" && (!start || !x.paidDate || x.paidDate>=start) && (!x.paidDate || x.paidDate<=asOf))
+    .reduce((s,x)=>s+num(x.amount),0);
   return num(state.balanceAdjustment)+income-paid;
 }
 function effectiveMyBurden(p){return (p.type==="shared"||p.type==="shared_installment")?(p.payer==="me"?num(p.myShare):0):(p.payer==="me"?num(p.amount):0);}
 function expectedPartner(p){return (p.type==="shared"||p.type==="shared_installment")&&p.payer==="me"?Math.max(0,num(p.partnerShare)-num(p.partnerReceived)):0;}
 
+
+function renderStartModeBanner(){
+  const el=byId("startModeBanner");
+  if(!el)return;
+  const start=effectiveStartDate();
+  if(!start){
+    el.classList.remove("hidden");
+    el.className="start-mode-banner ready";
+    el.innerHTML=`<div><strong><i class="ph ph-calendar-plus"></i> ยังไม่ได้กำหนดวันเริ่มใช้งาน</strong><small>ถ้าต้องการเริ่มใหม่เดือนหน้า กด “เริ่มใช้งานรอบใหม่” แล้วกรอกเฉพาะยอดคงเหลือจริง</small></div><button class="btn btn-secondary" onclick="openStartFresh()">ตั้งค่าเริ่มต้น</button>`;
+    return;
+  }
+  el.classList.remove("hidden");
+  el.className=`start-mode-banner ${isBeforeStart()?"future":"active"}`;
+  el.innerHTML=`<div><strong><i class="ph ph-flag"></i> ${isBeforeStart()?"เตรียมเริ่มใช้งาน":"เริ่มนับข้อมูลแล้ว"} ${thaiDate(start)}</strong><small>${isBeforeStart()?"Dashboard กำลังแสดงเดือนเริ่มต้นล่วงหน้า คุณสามารถกรอกหนี้และรายรับของเดือนนั้นได้เลย":"ระบบคำนวณกระแสเงินตั้งแต่วันเริ่มต้นนี้ ไม่ต้องย้อนกรอกประวัติก่อนหน้า"}</small></div><button class="btn btn-ghost" onclick="openStartFresh()">ตั้งค่าใหม่</button>`;
+}
+
 function renderDashboard(){
-  const now=new Date(),ym=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
-  const monthPays=state.payments.filter(p=>monthKey(p.dueDate)===ym);
+  renderStartModeBanner();
+  const refDate=planningDateKey(),ym=activeMonthKey();
+  const monthPays=state.payments.filter(p=>monthKey(p.dueDate)===ym && (!effectiveStartDate() || p.dueDate>=effectiveStartDate()));
   const due=monthPays.reduce((s,p)=>s+num(p.amount),0), unpaid=monthPays.filter(p=>!p.paid).reduce((s,p)=>s+num(p.amount),0);
   const expected=monthPays.filter(p=>!p.paid).reduce((s,p)=>s+expectedPartner(p),0),myBurden=monthPays.reduce((s,p)=>s+effectiveMyBurden(p),0);
   const paid=monthPays.filter(p=>p.paid).reduce((s,p)=>s+num(p.amount),0), current=getCurrentBalance();
-  const futureIncome=state.incomes.filter(x=>x.received&&monthKey(x.date)===ym&&x.date>todayKey()).reduce((s,x)=>s+num(x.amount),0);
-  const futureMyPays=monthPays.filter(p=>!p.paid&&p.dueDate>=todayKey()&&p.payer==="me").reduce((s,p)=>s+num(p.amount),0);
-  const futureExpected=monthPays.filter(p=>!p.paid&&p.dueDate>=todayKey()).reduce((s,p)=>s+expectedPartner(p),0);
+  const futureIncome=state.incomes.filter(x=>x.received&&monthKey(x.date)===ym&&x.date>refDate).reduce((s,x)=>s+num(x.amount),0);
+  const futureMyPays=monthPays.filter(p=>!p.paid&&p.dueDate>=refDate&&p.payer==="me").reduce((s,p)=>s+num(p.amount),0);
+  const futureExpected=monthPays.filter(p=>!p.paid&&p.dueDate>=refDate).reduce((s,p)=>s+expectedPartner(p),0);
   const end=current+futureIncome+futureExpected-futureMyPays;
 
   byId("currentBalance").textContent=money(current);byId("monthDue").textContent=money(due);byId("monthUnpaid").textContent=money(unpaid);
@@ -714,13 +759,13 @@ function renderDashboard(){
   byId("paidThisMonth").textContent=money(paid);byId("monthEndBalance").textContent=money(end);byId("monthEndBalance").className=end<0?"amount-danger":"amount-success";
 
   const timeline=[];
-  state.incomes.filter(x=>x.received&&x.date>=todayKey()&&monthKey(x.date)===ym).forEach(x=>timeline.push({date:x.date,delta:num(x.amount)}));
-  monthPays.filter(p=>!p.paid&&p.dueDate>=todayKey()&&p.payer==="me").forEach(p=>{
+  state.incomes.filter(x=>x.received&&x.date>=refDate&&monthKey(x.date)===ym).forEach(x=>timeline.push({date:x.date,delta:num(x.amount)}));
+  monthPays.filter(p=>!p.paid&&p.dueDate>=refDate&&p.payer==="me").forEach(p=>{
     if(expectedPartner(p)>0)timeline.push({date:p.transferDate||p.dueDate,delta:expectedPartner(p)});
     timeline.push({date:p.dueDate,delta:-num(p.amount)});
   });
   timeline.sort((a,b)=>a.date.localeCompare(b.date)||b.delta-a.delta);
-  let running=current,min=running,minDate=todayKey();timeline.forEach(t=>{running+=t.delta;if(running<min){min=running;minDate=t.date;}});
+  let running=current,min=running,minDate=refDate;timeline.forEach(t=>{running+=t.delta;if(running<min){min=running;minDate=t.date;}});
   const box=byId("monthSituation");
   if(min<0){box.className="situation-box danger";box.innerHTML=`<strong><i class="ph-fill ph-warning-circle" style="color:var(--danger)"></i> มีโอกาสเงินไม่พอ</strong><br>จุดต่ำสุดประมาณ <strong>${money(min)}</strong> วันที่ <strong>${thaiDate(minDate)}</strong><br>ควรเตรียมเพิ่มอย่างน้อย <strong>${money(Math.abs(min))}</strong>`;}
   else{box.className="situation-box good";box.innerHTML=`<strong><i class="ph-fill ph-check-circle" style="color:var(--good)"></i> จากข้อมูลที่มี เดือนนี้ยังผ่านได้</strong><br>ยอดต่ำสุดประมาณ <strong>${money(min)}</strong><br>คาดว่าสิ้นเดือนเหลือ <strong>${money(end)}</strong>`;}
@@ -729,10 +774,22 @@ function renderDashboard(){
   byId("upcomingList").innerHTML=upcoming.length?upcoming.map(p=>`<div class="compact-item"><div><strong>${p.name}</strong><br><small>${thaiDate(p.dueDate)} ${p.type==="shared"?"• หนี้ร่วม":""}</small></div><strong class="${p.dueDate<todayKey()?"amount-danger":""}">${money(p.amount)}</strong></div>`).join(""):`<div class="empty">ยังไม่มีรายการที่ต้องจ่าย</div>`;
 }
 
-function renderMonthOptions(){
-  const s=byId("calendarMonth");if(s.options.length)return;
-  const base=new Date();base.setDate(1);
-  for(let i=-2;i<10;i++){const d=new Date(base);d.setMonth(base.getMonth()+i);const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;const op=document.createElement("option");op.value=key;op.textContent=d.toLocaleDateString("th-TH",{month:"long",year:"numeric"});if(i===0)op.selected=true;s.appendChild(op);}
+function renderMonthOptions(force=false){
+  const s=byId("calendarMonth");if(!s)return;
+  const selected=s.value;
+  if(force) s.innerHTML="";
+  if(s.options.length)return;
+  const base=parseDate(planningDateKey());base.setDate(1);
+  for(let i=-1;i<11;i++){
+    const d=new Date(base);d.setMonth(base.getMonth()+i);
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+    if(effectiveStartDate() && key<monthKey(effectiveStartDate())) continue;
+    const op=document.createElement("option");
+    op.value=key;op.textContent=d.toLocaleDateString("th-TH",{month:"long",year:"numeric"});
+    if(key===(selected||activeMonthKey()))op.selected=true;
+    s.appendChild(op);
+  }
+  if(!s.value && s.options.length) s.value=activeMonthKey();
 }
 byId("calendarMonth").addEventListener("change",renderPayments);
 byId("calendarStatus").addEventListener("change",renderPayments);
@@ -760,6 +817,7 @@ window.togglePaid=function(id){
     }
   }
   p.paid=!p.paid;
+  p.paidDate=p.paid?todayKey():null;
   if(p.loanRoundId&&p.loanInstallmentId){
     const debt=state.debts.find(d=>d.id===p.debtId);
     const round=debt?.loanRounds?.find(r=>r.id===p.loanRoundId);
@@ -1008,7 +1066,7 @@ function renderRotations(){
 }
 
 function renderForecast(){
-  const rows=[],base=new Date();base.setDate(1);let carry=getCurrentBalance();
+  const rows=[],base=parseDate(planningDateKey());base.setDate(1);let carry=getCurrentBalance(planningDateKey());
   for(let i=0;i<6;i++){const d=new Date(base);d.setMonth(base.getMonth()+i);const ym=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;const inc=state.incomes.filter(x=>monthKey(x.date)===ym).reduce((s,x)=>s+num(x.amount),0);const pays=state.payments.filter(p=>monthKey(p.dueDate)===ym&&p.payer==="me").reduce((s,p)=>s+num(p.amount),0);const shared=state.payments.filter(p=>monthKey(p.dueDate)===ym).reduce((s,p)=>s+expectedPartner(p),0);const projected=carry+inc+shared-pays;rows.push({label:d.toLocaleDateString("th-TH",{month:"long",year:"numeric"}),inc:inc+shared,pays,projected});carry=projected;}
   byId("forecastTable").innerHTML=`<table><thead><tr><th>เดือน</th><th>เงินเข้า/รอรับ</th><th>ต้องจ่าย</th><th>คาดการณ์คงเหลือ</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.label}</td><td>${money(r.inc)}</td><td>${money(r.pays)}</td><td class="${r.projected<0?"amount-danger":"amount-success"}"><strong>${money(r.projected)}</strong></td></tr>`).join("")}</tbody></table>`;
 }
@@ -1265,6 +1323,55 @@ function ensureFlexibleLoanData(){
 function renderAll(){
   ensureFlexibleLoanData();renderDashboard();renderPayments();renderDebts();renderIncome();renderRotations();renderForecast();renderRotationPlanner();renderSavedPlans();}
 
+
+/* ===== Start Fresh / Opening Balance ===== */
+const startFreshModal=byId("startFreshModal");
+
+function openStartFresh(){
+  if(!startFreshModal)return;
+  byId("freshStartDate").value=state.startDate||nextMonthStart();
+  byId("freshOpeningBalance").value=state.startDate?num(state.balanceAdjustment):0;
+  byId("freshConfirmCheck").checked=false;
+  startFreshModal.classList.remove("hidden");
+}
+window.openStartFresh=openStartFresh;
+
+function closeStartFresh(){
+  startFreshModal?.classList.add("hidden");
+}
+
+function confirmStartFresh(){
+  const start=byId("freshStartDate")?.value;
+  const opening=num(byId("freshOpeningBalance")?.value);
+  const checked=!!byId("freshConfirmCheck")?.checked;
+  if(!start)return alert("กรุณาเลือกวันที่เริ่มใช้งาน");
+  if(!checked)return alert("กรุณาติ๊กยืนยันก่อนเริ่มรอบใหม่");
+
+  const msg=`เริ่มข้อมูลใหม่วันที่ ${thaiDate(start)}\nยอดเงินจริงตั้งต้น ${money(opening)}\n\nรายการหนี้ รายรับ รายจ่าย และเงินหมุนเดิมจะถูกล้างออก\nต้องการดำเนินการต่อหรือไม่?`;
+  if(!confirm(msg))return;
+
+  replaceState({
+    ...defaultState(),
+    startDate:start,
+    setupCompleted:true,
+    balanceAdjustment:opening
+  });
+  saveState();
+  renderMonthOptions(true);
+  renderAll();
+  closeStartFresh();
+  closeMore();
+  navigateTo("dashboard");
+  toast(`พร้อมเริ่มใช้ตั้งแต่ ${thaiDate(start)}`);
+}
+
+byId("startFreshBtn")?.addEventListener("click",openStartFresh);
+byId("moreStartFreshBtn")?.addEventListener("click",()=>{closeMore();openStartFresh();});
+byId("closeStartFreshBtn")?.addEventListener("click",closeStartFresh);
+byId("confirmStartFreshBtn")?.addEventListener("click",confirmStartFresh);
+byId("backupBeforeFreshBtn")?.addEventListener("click",exportData);
+startFreshModal?.addEventListener("click",e=>{if(e.target===startFreshModal)closeStartFresh();});
+
 /* ===== Backup / Import / Reset (Desktop + Mobile) ===== */
 function exportData(){
   const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
@@ -1282,6 +1389,7 @@ async function handleImportFile(file){
     const json = JSON.parse(await file.text());
     replaceState(json);
     saveState();
+    renderMonthOptions(true);
     renderAll();
     toast("นำเข้าข้อมูลเรียบร้อยแล้ว");
   }catch(err){
@@ -1294,6 +1402,7 @@ function handleResetData(){
   if(!confirm("ต้องการล้างข้อมูลทั้งหมดในเครื่องจริงหรือไม่?\n(ข้อมูลทั้งหมดจะถูกรีเซ็ตเป็นค่าเริ่มต้น)")) return;
   replaceState(defaultState());
   saveState();
+  renderMonthOptions(true);
   renderAll();
   toast("ล้างข้อมูลเรียบร้อยแล้ว");
 }
