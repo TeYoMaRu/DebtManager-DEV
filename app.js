@@ -301,12 +301,12 @@ const selectField=(name,label,options)=>`<div class="field"><label for="${name}"
 
 function smartDebtTypeOptions(){
   return [
-    ["credit_card","บัตรเครดิต"],
-    ["installment","ผ่อนคงที่"],
-    ["loan","สินเชื่อทั่วไป"],
-    ["seasycash","สินเชื่อแบบ SEasyCash / กู้เป็นรอบ"],
-    ["shared_one_time","หนี้ร่วมครั้งเดียว"],
-    ["shared_installment","หนี้ร่วมแบบผ่อนคงที่"]
+    ["credit_card","<i class=\"ph ph-credit-card\"></i> บัตรเครดิต"],
+    ["installment","<i class=\"ph ph-package\"></i> ผ่อนคงที่"],
+    ["loan","<i class=\"ph ph-bank\"></i> สินเชื่อทั่วไป"],
+    ["seasycash","<i class=\"ph ph-arrows-clockwise\"></i> สินเชื่อแบบ SEasyCash / กู้เป็นรอบ"],
+    ["shared_one_time","<i class=\"ph ph-handshake\"></i> หนี้ร่วมครั้งเดียว"],
+    ["shared_installment","<i class=\"ph ph-car\"></i> หนี้ร่วมแบบผ่อนคงที่"]
   ];
 }
 
@@ -722,8 +722,8 @@ function renderDashboard(){
   timeline.sort((a,b)=>a.date.localeCompare(b.date)||b.delta-a.delta);
   let running=current,min=running,minDate=todayKey();timeline.forEach(t=>{running+=t.delta;if(running<min){min=running;minDate=t.date;}});
   const box=byId("monthSituation");
-  if(min<0){box.className="situation-box danger";box.innerHTML=`<strong><span class="material-symbols-outlined">error</span> มีโอกาสเงินไม่พอ</strong><br>จุดต่ำสุดประมาณ <strong>${money(min)}</strong> วันที่ <strong>${thaiDate(minDate)}</strong><br>ควรเตรียมเพิ่มอย่างน้อย <strong>${money(Math.abs(min))}</strong>`;}
-  else{box.className="situation-box good";box.innerHTML=`<strong><span class="material-symbols-outlined">check_circle</span> จากข้อมูลที่มี เดือนนี้ยังผ่านได้</strong><br>ยอดต่ำสุดประมาณ <strong>${money(min)}</strong><br>คาดว่าสิ้นเดือนเหลือ <strong>${money(end)}</strong>`;}
+  if(min<0){box.className="situation-box danger";box.innerHTML=`<strong><i class="ph-fill ph-warning-circle" style="color:var(--danger)"></i> มีโอกาสเงินไม่พอ</strong><br>จุดต่ำสุดประมาณ <strong>${money(min)}</strong> วันที่ <strong>${thaiDate(minDate)}</strong><br>ควรเตรียมเพิ่มอย่างน้อย <strong>${money(Math.abs(min))}</strong>`;}
+  else{box.className="situation-box good";box.innerHTML=`<strong><i class="ph-fill ph-check-circle" style="color:var(--good)"></i> จากข้อมูลที่มี เดือนนี้ยังผ่านได้</strong><br>ยอดต่ำสุดประมาณ <strong>${money(min)}</strong><br>คาดว่าสิ้นเดือนเหลือ <strong>${money(end)}</strong>`;}
 
   const upcoming=state.payments.filter(p=>!p.paid).sort((a,b)=>a.dueDate.localeCompare(b.dueDate)).slice(0,6);
   byId("upcomingList").innerHTML=upcoming.length?upcoming.map(p=>`<div class="compact-item"><div><strong>${p.name}</strong><br><small>${thaiDate(p.dueDate)} ${p.type==="shared"?"• หนี้ร่วม":""}</small></div><strong class="${p.dueDate<todayKey()?"amount-danger":""}">${money(p.amount)}</strong></div>`).join(""):`<div class="empty">ยังไม่มีรายการที่ต้องจ่าย</div>`;
@@ -746,7 +746,7 @@ function renderPayments(){
     <div><strong>${p.name}</strong><br><small>${thaiDate(p.dueDate)} ${(p.type==="shared"||p.type==="shared_installment")?`• ${p.partnerName||"ผู้ร่วมจ่าย"} ${money(p.partnerShare)}${p.installmentNo?` • งวด ${p.installmentNo}/${p.totalInstallments}`:""}`:""}</small></div>
     <div class="hide-mobile"><span class="tag ${(p.type==="shared"||p.type==="shared_installment")?"shared":""}">${labelType(p.type)}</span></div>
     <div class="hide-mobile">${p.paid?"จ่ายแล้ว":"ยังไม่จ่าย"}</div>
-    <div style="text-align:right"><strong>${money(p.amount)}</strong><br><div class="row-actions">${(p.type==="shared"||p.type==="shared_installment")&&!p.paid?`<button class="action-link" onclick="receiveShared('${p.id}')">รับเงินร่วม</button>`:""}<button class="mini-edit-btn" aria-label="แก้ไข" onclick="editPayment('${p.id}')"><span class="material-symbols-outlined">edit</span></button><button class="mini-delete-btn" aria-label="ลบ" onclick="deletePayment('${p.id}')"><span class="material-symbols-outlined">delete</span></button></div></div></div>`).join(""):`<div class="empty">ไม่มีรายการในเดือนนี้</div>`;
+    <div style="text-align:right"><strong>${money(p.amount)}</strong><br><div class="row-actions">${(p.type==="shared"||p.type==="shared_installment")&&!p.paid?`<button class="action-link" onclick="receiveShared('${p.id}')">รับเงินร่วม</button>`:""}<button class="mini-edit-btn" onclick="editPayment('${p.id}')"><i class="ph ph-pencil-simple"></i></button><button class="mini-delete-btn" onclick="deletePayment('${p.id}')"><i class="ph ph-trash"></i></button></div></div></div>`).join(""):`<div class="empty">ไม่มีรายการในเดือนนี้</div>`;
 }
 
 window.togglePaid=function(id){
@@ -929,8 +929,8 @@ function renderDebts(){
                 <small>เงินต้น ${money(r.borrowedAmount)} • ดอกเบี้ย ${money(r.totalInterest||0)}${num(r.totalFee)?` • ค่าธรรมเนียม ${money(r.totalFee)}`:""} • ต้องคืน ${money(r.totalRepayment||0)}</small>
               </div>
               <div class="row-actions">
-                <button class="edit-btn" onclick="editLoanRound('${d.id}','${r.id}')"><span class="material-symbols-outlined">edit</span>แก้รอบ</button>
-                <button class="delete-btn" onclick="deleteLoanRound('${d.id}','${r.id}')"><span class="material-symbols-outlined">delete</span>ลบรอบ</button>
+                <button class="edit-btn" onclick="editLoanRound('${d.id}','${r.id}')"><i class="ph ph-pencil-simple"></i> แก้รอบ</button>
+                <button class="delete-btn" onclick="deleteLoanRound('${d.id}','${r.id}')"><i class="ph ph-trash"></i> ลบรอบ</button>
               </div>
             </div>
             <div class="loan-installments">
@@ -980,17 +980,17 @@ function renderDebts(){
       `}
       ${roundHtml}
       <div class="card-actions">
-        <button class="edit-btn" onclick="editDebt('${d.id}')"><span class="material-symbols-outlined">edit</span>แก้ไข</button>
-        <button class="delete-btn" onclick="deleteDebt('${d.id}')"><span class="material-symbols-outlined">delete</span>ลบ</button>
+        <button class="edit-btn" onclick="editDebt('${d.id}')"><i class="ph ph-pencil-simple"></i> แก้ไข</button>
+        <button class="delete-btn" onclick="deleteDebt('${d.id}')"><i class="ph ph-trash"></i> ลบ</button>
         <button class="btn btn-ghost" onclick="adjustDebtBalance('${d.id}')">ปรับยอดคงเหลือ</button>
         ${special
-          ? `<button class="btn btn-secondary" onclick="openLoanRoundModal('${d.id}')">＋ เพิ่มรอบกู้ใหม่</button>`
-          : `<button class="btn btn-secondary" onclick="addDebtBill('${d.id}')">＋ เพิ่มยอดรอบใหม่</button>`
+          ? `<button class="btn btn-secondary" onclick="openLoanRoundModal('${d.id}')"><i class="ph ph-plus"></i> เพิ่มรอบกู้ใหม่</button>`
+          : `<button class="btn btn-secondary" onclick="addDebtBill('${d.id}')"><i class="ph ph-plus"></i> เพิ่มยอดรอบใหม่</button>`
         }
         ${(!special && d.debtKind==="loan")
-          ? `<button class="mode-btn" onclick="toggleLoanRoundMode('${d.id}')"><span class="material-symbols-outlined">settings</span>ใช้แบบ SEasyCash</button>`
+          ? `<button class="mode-btn" onclick="toggleLoanRoundMode('${d.id}')"><i class="ph ph-gear"></i> ใช้แบบ SEasyCash</button>`
           : (special && !String(d.name||"").toLowerCase().includes("seasycash")
-              ? `<button class="mode-btn" onclick="toggleLoanRoundMode('${d.id}')"><span class="material-symbols-outlined">undo</span>ใช้แบบปกติ</button>`
+              ? `<button class="mode-btn" onclick="toggleLoanRoundMode('${d.id}')"><i class="ph ph-arrow-u-up-left"></i> ใช้แบบปกติ</button>`
               : "")
         }
       </div>
@@ -1045,8 +1045,8 @@ function renderRotationPlanner(){
   byId("planStartCash").textContent=money(c.start);byId("planTotalPaid").textContent=money(c.totalPaid);byId("planTotalBack").textContent=money(c.totalBack);
   byId("planTotalCost").textContent=money(c.totalCost);byId("planNetDebtDrop").textContent=money(c.netDrop);byId("planEndCash").textContent=money(c.end);
   const box=byId("rotationPlanStatus");
-  if(c.failed){box.className="situation-box danger";box.innerHTML=`<strong><span class="material-symbols-outlined">error</span> เงินสะดุดที่รอบ ${c.failed.index+1}</strong><br>มีเงินก่อนรอบนี้ ${money(c.failed.cash)} แต่ต้องจ่าย ${money(c.failed.pay)} — ขาด ${money(c.failed.short)}`;}
-  else if(rotationDraft.length){box.className="situation-box good";box.innerHTML=`<strong><span class="material-symbols-outlined">check_circle</span> แผนนี้หมุนต่อได้ตามข้อมูลที่กรอก</strong><br>หลังจบรอบเหลือเงินสดประมาณ <strong>${money(c.end)}</strong> และต้นทุนจากการหมุนประมาณ <strong>${money(c.totalCost)}</strong>`;}
+  if(c.failed){box.className="situation-box danger";box.innerHTML=`<strong><i class="ph-fill ph-warning-circle" style="color:var(--danger)"></i> เงินสะดุดที่รอบ ${c.failed.index+1}</strong><br>มีเงินก่อนรอบนี้ ${money(c.failed.cash)} แต่ต้องจ่าย ${money(c.failed.pay)} — ขาด ${money(c.failed.short)}`;}
+  else if(rotationDraft.length){box.className="situation-box good";box.innerHTML=`<strong><i class="ph-fill ph-check-circle" style="color:var(--good)"></i> แผนนี้หมุนต่อได้ตามข้อมูลที่กรอก</strong><br>หลังจบรอบเหลือเงินสดประมาณ <strong>${money(c.end)}</strong> และต้นทุนจากการหมุนประมาณ <strong>${money(c.totalCost)}</strong>`;}
   else{box.className="situation-box";box.innerHTML="เพิ่มรอบเพื่อดูว่าเงินก้อนนี้จะหมุนต่อได้ถึงไหน";}
 }
 window.updateRotationStep=function(id,key,value){const s=rotationDraft.find(x=>x.id===id);if(!s)return;s[key]=["pay","back"].includes(key)?num(value):value;renderRotationPlanner();};

@@ -6,11 +6,10 @@
   <meta name="theme-color" content="#10182b" />
   <title>My Money Flow</title>
   <link rel="stylesheet" href="styles.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0" rel="stylesheet">
   <link rel="icon" type="image/png" href="./my-money-flow-logo.png">
   <link rel="apple-touch-icon" href="./my-money-flow-logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -24,21 +23,21 @@
       </div>
 
       <nav class="nav" id="desktopNav">
-        <button class="nav-item active" data-page="dashboard" id="nav-dashboard"><span class="material-symbols-outlined">home</span>ภาพรวม</button>
-        <button class="nav-item" data-page="calendar" id="nav-calendar"><span class="material-symbols-outlined">calendar_month</span>รายการต้องจ่าย</button>
-        <button class="nav-item" data-page="debts" id="nav-debts"><span class="material-symbols-outlined">credit_card</span>หนี้ทั้งหมด</button>
-        <button class="nav-item" data-page="income" id="nav-income"><span class="material-symbols-outlined">payments</span>เงินเข้า</button>
-        <button class="nav-item" data-page="rotation" id="nav-rotation"><span class="material-symbols-outlined">sync_alt</span>เงินหมุน</button>
-        <button class="nav-item" data-page="forecast" id="nav-forecast"><span class="material-symbols-outlined">bar_chart</span>แผนล่วงหน้า</button>
+        <button class="nav-item active" data-page="dashboard" id="nav-dashboard"><i class="ph ph-house"></i> ภาพรวม</button>
+        <button class="nav-item" data-page="calendar" id="nav-calendar"><i class="ph ph-calendar-blank"></i> รายการต้องจ่าย</button>
+        <button class="nav-item" data-page="debts" id="nav-debts"><i class="ph ph-credit-card"></i> หนี้ทั้งหมด</button>
+        <button class="nav-item" data-page="income" id="nav-income"><i class="ph ph-money"></i> เงินเข้า</button>
+        <button class="nav-item" data-page="rotation" id="nav-rotation"><i class="ph ph-arrows-clockwise"></i> เงินหมุน</button>
+        <button class="nav-item" data-page="forecast" id="nav-forecast"><i class="ph ph-chart-bar"></i> แผนล่วงหน้า</button>
       </nav>
 
       <div class="sidebar-footer">
-        <button class="btn btn-ghost btn-full" id="exportBtn"><span class="material-symbols-outlined">save</span>สำรองข้อมูล</button>
+        <button class="btn btn-ghost btn-full" id="exportBtn"><i class="ph ph-floppy-disk"></i> สำรองข้อมูล</button>
         <label class="btn btn-ghost btn-full file-label" id="importLabel">
-          <span class="material-symbols-outlined">file_upload</span>นำเข้าข้อมูล
+          <i class="ph ph-download-simple"></i> นำเข้าข้อมูล
           <input type="file" id="importInput" accept=".json" hidden />
         </label>
-        <button class="btn btn-danger-soft btn-full" id="resetBtn"><span class="material-symbols-outlined">delete</span>ล้างข้อมูลทั้งหมด</button>
+        <button class="btn btn-danger-soft btn-full" id="resetBtn"><i class="ph ph-trash"></i> ล้างข้อมูลทั้งหมด</button>
       </div>
     </aside>
 
@@ -54,7 +53,7 @@
               <span class="page-badge" id="pageBadge">แดชบอร์ด</span>
             </div>
             <div class="topbar-date-pill" id="datePill">
-              <span class="date-icon material-symbols-outlined">calendar_month</span>
+              <span class="date-icon"><i class="ph ph-calendar-blank"></i></span>
               <span id="todayText"></span>
             </div>
           </div>
@@ -66,15 +65,15 @@
             <span class="status-label">ออฟไลน์</span>
           </div>
           <button class="btn btn-ghost topbar-account-btn" id="accountBtn" title="จัดการบัญชีผู้ใช้">
-            <span class="account-btn-icon material-symbols-outlined">person</span>
+            <span class="account-btn-icon"><i class="ph ph-user"></i></span>
             <span id="accountBtnText" class="account-btn-text">บัญชี</span>
           </button>
           <button class="btn btn-primary topbar-add-btn" id="openAddBtn">
-            <span class="btn-icon">＋</span>
+            <span class="btn-icon"><i class="ph ph-plus"></i></span>
             <span>เพิ่มข้อมูล</span>
           </button>
           <button class="btn btn-ghost mobile-only-btn" id="openMobileMenuBtn" aria-label="เมนูและการตั้งค่า" title="เมนูเพิ่มเติม">
-            <span class="material-symbols-outlined">settings</span>
+            <span><i class="ph ph-list"></i></span>
           </button>
         </div>
       </header>
@@ -189,7 +188,7 @@
         <article class="panel rotation-planner">
           <div class="panel-head responsive">
             <div>
-              <h3><span class="material-symbols-outlined">sync_alt</span>วางแผนหมุนเงิน</h3>
+              <h3><i class="ph ph-arrows-clockwise"></i> วางแผนหมุนเงิน</h3>
               <p>จำลองก่อนจ่ายจริง — เงินก้อนเดียวหมุนต่อได้ถึงไหน และเสียต้นทุนเท่าไร</p>
             </div>
             <button class="btn btn-secondary" id="useCurrentBalanceBtn">ใช้ยอดเงินจริงปัจจุบัน</button>
@@ -217,7 +216,7 @@
               <h4>เส้นทางเงิน</h4>
               <small>เช่น เครดิต A → เครดิต B → ค่าใช้จ่ายที่ดึงกลับไม่ได้</small>
             </div>
-            <button class="btn btn-primary" id="addRotationStepBtn">＋ เพิ่มรอบ</button>
+            <button class="btn btn-primary" id="addRotationStepBtn"><i class="ph ph-plus"></i> เพิ่มรอบ</button>
           </div>
 
           <div id="rotationSteps" class="rotation-steps"></div>
@@ -266,34 +265,34 @@
 
     <!-- Floating Action Button for Mobile -->
     <button class="fab" id="fabAdd" aria-label="เพิ่มข้อมูล" title="เพิ่มข้อมูล">
-      <span class="fab-icon">＋</span>
+      <span class="fab-icon"><i class="ph ph-plus"></i></span>
       <span class="fab-label">เพิ่ม</span>
     </button>
 
     <!-- Mobile Bottom Navigation Bar -->
     <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="แถบนำทางหลัก">
       <button class="mobile-nav-item active" data-page="dashboard" id="mob-dashboard">
-        <span class="mob-icon material-symbols-outlined">home</span>
+        <span class="mob-icon"><i class="ph ph-house"></i></span>
         <span class="mob-text">ภาพรวม</span>
       </button>
       <button class="mobile-nav-item" data-page="calendar" id="mob-calendar">
-        <span class="mob-icon material-symbols-outlined">calendar_month</span>
+        <span class="mob-icon"><i class="ph ph-calendar-blank"></i></span>
         <span class="mob-text">ต้องจ่าย</span>
       </button>
       <button class="mobile-nav-item" data-page="debts" id="mob-debts">
-        <span class="mob-icon material-symbols-outlined">credit_card</span>
+        <span class="mob-icon"><i class="ph ph-credit-card"></i></span>
         <span class="mob-text">หนี้สิน</span>
       </button>
       <button class="mobile-nav-item" data-page="income" id="mob-income">
-        <span class="mob-icon material-symbols-outlined">payments</span>
+        <span class="mob-icon"><i class="ph ph-money"></i></span>
         <span class="mob-text">เงินเข้า</span>
       </button>
       <button class="mobile-nav-item" data-page="rotation" id="mob-rotation">
-        <span class="mob-icon material-symbols-outlined">sync_alt</span>
+        <span class="mob-icon"><i class="ph ph-arrows-clockwise"></i></span>
         <span class="mob-text">เงินหมุน</span>
       </button>
       <button class="mobile-nav-item" id="mob-more" aria-label="เมนูเพิ่มเติม">
-        <span class="mob-icon material-symbols-outlined">menu</span>
+        <span class="mob-icon"><i class="ph ph-list"></i></span>
         <span class="mob-text">เมนู</span>
       </button>
     </nav>
@@ -307,12 +306,12 @@
           <h3>เมนูและการตั้งค่า</h3>
           <p>จัดการข้อมูลและเครื่องมือเพิ่มเติม</p>
         </div>
-        <button class="icon-btn" id="closeMoreBtn">✕</button>
+        <button class="icon-btn" id="closeMoreBtn"><i class="ph ph-x"></i></button>
       </div>
 
       <div class="more-menu-grid">
         <button class="more-item" data-page="forecast" id="moreForecastBtn">
-          <span class="more-item-icon material-symbols-outlined">bar_chart</span>
+          <span class="more-item-icon"><i class="ph ph-chart-bar"></i></span>
           <div class="more-item-info">
             <strong>แผนล่วงหน้า 6 เดือน</strong>
             <small>ดูคาดการณ์กระแสเงินสดล่วงหน้า</small>
@@ -320,7 +319,7 @@
         </button>
 
         <button class="more-item" id="moreAccountBtn">
-          <span class="more-item-icon material-symbols-outlined">cloud</span>
+          <span class="more-item-icon"><i class="ph ph-cloud"></i></span>
           <div class="more-item-info">
             <strong>บัญชี & คลาวด์ซิงก์</strong>
             <small id="moreAccountStatus">เข้าสู่ระบบเพื่อซิงก์ข้อมูล</small>
@@ -328,7 +327,7 @@
         </button>
 
         <button class="more-item" id="moreExportBtn">
-          <span class="more-item-icon material-symbols-outlined">save</span>
+          <span class="more-item-icon"><i class="ph ph-floppy-disk"></i></span>
           <div class="more-item-info">
             <strong>สำรองข้อมูล (JSON)</strong>
             <small>ดาวน์โหลดไฟล์ข้อมูลเก็บไว้ในเครื่อง</small>
@@ -336,7 +335,7 @@
         </button>
 
         <label class="more-item file-label" id="moreImportLabel">
-          <span class="more-item-icon material-symbols-outlined">file_upload</span>
+          <span class="more-item-icon"><i class="ph ph-download-simple"></i></span>
           <div class="more-item-info">
             <strong>นำเข้าข้อมูล (JSON)</strong>
             <small>กู้คืนข้อมูลจากไฟล์สำรอง</small>
@@ -345,7 +344,7 @@
         </label>
 
         <button class="more-item danger" id="moreResetBtn">
-          <span class="more-item-icon material-symbols-outlined">delete</span>
+          <span class="more-item-icon"><i class="ph ph-trash"></i></span>
           <div class="more-item-info">
             <strong>ล้างข้อมูลทั้งหมด</strong>
             <small>ล้างข้อมูลในเครื่องเพื่อเริ่มใหม่</small>
@@ -362,16 +361,16 @@
           <h3>เพิ่มข้อมูล</h3>
           <p>เลือกประเภทข้อมูลที่ต้องการบันทึก</p>
         </div>
-        <button class="icon-btn" id="closeModalBtn">✕</button>
+        <button class="icon-btn" id="closeModalBtn"><i class="ph ph-x"></i></button>
       </div>
 
       <div class="add-type-grid">
-        <button class="add-type active" data-type="debt"><span class="material-symbols-outlined">credit_card</span><span>เพิ่มหนี้</span></button>
-        <button class="add-type" data-type="shared"><span class="material-symbols-outlined">handshake</span><span>หนี้ร่วม</span></button>
-        <button class="add-type" data-type="income"><span class="material-symbols-outlined">payments</span><span>เงินเข้า</span></button>
-        <button class="add-type" data-type="expense"><span class="material-symbols-outlined">receipt_long</span><span>ค่าใช้จ่าย</span></button>
-        <button class="add-type" data-type="rotation"><span class="material-symbols-outlined">sync_alt</span><span>เงินหมุน</span></button>
-        <button class="add-type" data-type="balance"><span class="material-symbols-outlined">balance</span><span>ปรับยอดเงิน</span></button>
+        <button class="add-type active" data-type="debt"><i class="ph ph-credit-card"></i><span>เพิ่มหนี้</span></button>
+        <button class="add-type" data-type="shared"><i class="ph ph-handshake"></i><span>หนี้ร่วม</span></button>
+        <button class="add-type" data-type="income"><i class="ph ph-money"></i><span>เงินเข้า</span></button>
+        <button class="add-type" data-type="expense"><i class="ph ph-receipt"></i><span>ค่าใช้จ่าย</span></button>
+        <button class="add-type" data-type="rotation"><i class="ph ph-arrows-clockwise"></i><span>เงินหมุน</span></button>
+        <button class="add-type" data-type="balance"><i class="ph ph-scales"></i><span>ปรับยอดเงิน</span></button>
       </div>
 
       <form id="dataForm" class="form-grid"></form>
@@ -392,7 +391,7 @@
           <h3>เชื่อมต่อ My Money Flow</h3>
           <p>เข้าสู่ระบบเพื่อซิงก์ข้อมูลระหว่างมือถือ แท็บเล็ต และคอม</p>
         </div>
-        <button class="icon-btn" id="closeAuthBtn">✕</button>
+        <button class="icon-btn" id="closeAuthBtn"><i class="ph ph-x"></i></button>
       </div>
 
       <div id="authSignedOut">
@@ -421,7 +420,7 @@
           <small id="lastSyncText">ยังไม่ได้ซิงก์</small>
         </div>
         <div class="auth-actions">
-          <button class="btn btn-secondary" id="syncNowBtn"><span class="material-symbols-outlined">cloud_sync</span>ซิงก์ตอนนี้</button>
+          <button class="btn btn-secondary" id="syncNowBtn"><i class="ph ph-cloud"></i> ซิงก์ตอนนี้</button>
           <button class="btn btn-danger-soft" id="logoutBtn">ออกจากระบบ</button>
         </div>
       </div>
