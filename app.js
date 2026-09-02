@@ -234,11 +234,11 @@ const selectField=(name,label,options)=>`<div class="field"><label for="${name}"
 function smartDebtTypeOptions(){
   return [
     ["credit_card","💳 บัตรเครดิต"],
-    ["installment","🚗 ผ่อนคงที่"],
+    ["installment","📦 ผ่อนคงที่"],
     ["loan","🏦 สินเชื่อทั่วไป"],
     ["seasycash","🔄 สินเชื่อแบบ SEasyCash / กู้เป็นรอบ"],
     ["shared_one_time","🤝 หนี้ร่วมครั้งเดียว"],
-    ["shared_installment","🚘 หนี้ร่วมแบบผ่อนคงที่"]
+    ["shared_installment","🚗 หนี้ร่วมแบบผ่อนคงที่"]
   ];
 }
 
@@ -252,18 +252,18 @@ function smartDebtFields(type,today){
       ${field("dueDate","วันครบกำหนดรอบนี้","date",`value="${today}" required`)}
       ${field("statementDay","วันตัดรอบ (ถ้ามี)","number",'min="1" max="31"')}
       ${selectField("payer","ผู้จ่ายเจ้าหนี้",[["me","ฉัน"],["partner","แฟน"],["other","คนอื่น"]])}
-      <div class="field full debt-form-note">เหมาะกับบัตรเครดิตที่ยอดเรียกเก็บแต่ละเดือนไม่เท่ากัน</div>`;
+      <div class="field full debt-form-note">ยอดหนี้คงเหลือและยอดเรียกเก็บรอบนี้แยกจากกัน</div>`;
   }
 
   if(type==="installment"){
     return `
-      ${field("name","ชื่อรายการผ่อน","text",'required placeholder="เช่น โทรศัพท์ / เครื่องใช้ไฟฟ้า"')}
+      ${field("name","ชื่อรายการผ่อน","text",'required placeholder="เช่น โทรศัพท์"')}
       ${field("installmentAmount","ยอดต่องวด","number",'min="0" step="0.01" required')}
       ${field("installments","จำนวนงวดทั้งหมด","number",'min="1" value="1" required')}
       ${field("paidInstallments","จ่ายแล้วกี่งวด","number",'min="0" value="0" required')}
       ${field("dueDate","วันครบกำหนดงวดถัดไป","date",`value="${today}" required`)}
       ${selectField("payer","ผู้จ่ายเจ้าหนี้",[["me","ฉัน"],["partner","แฟน"],["other","คนอื่น"]])}
-      <div class="field full debt-form-note">ระบบจะคำนวณยอดคงเหลือจาก “ยอดต่องวด × จำนวนงวดที่เหลือ”</div>`;
+      <div class="field full debt-form-note">ระบบจะคำนวณยอดคงเหลือจากยอดต่องวด × จำนวนงวดที่เหลือ</div>`;
   }
 
   if(type==="loan"){
@@ -273,24 +273,24 @@ function smartDebtFields(type,today){
       ${field("currentBill","ยอดที่ต้องจ่ายรอบนี้","number",'min="0" step="0.01" required')}
       ${field("dueDate","วันครบกำหนด","date",`value="${today}" required`)}
       ${selectField("payer","ผู้จ่ายเจ้าหนี้",[["me","ฉัน"],["partner","แฟน"],["other","คนอื่น"]])}
-      <div class="field full debt-form-note">ถ้าสินเชื่อนี้กู้เพิ่มเป็นรอบ ๆ ภายหลัง สามารถเปลี่ยนเป็น “แบบ SEasyCash” ได้จากการ์ดหนี้</div>`;
+      <div class="field full debt-form-note">สินเชื่อทั่วไปยังใช้รูปแบบเดิม หากต้องกู้เป็นรอบค่อยเลือกแบบ SEasyCash</div>`;
   }
 
   if(type==="seasycash"){
     return `
-      ${field("name","ชื่อสินเชื่อ","text",'required placeholder="เช่น SEasyCash"')}
+      ${field("name","ชื่อสินเชื่อ","text",'required value="SEasyCash"')}
       ${field("borrowedAmount","เงินต้นที่กู้รอบนี้","number",'min="0" step="0.01" required')}
       ${field("totalInterest","ดอกเบี้ยที่ต้องจ่ายรวม","number",'min="0" step="0.01" value="0" required')}
       ${field("totalFee","ค่าธรรมเนียม / ค่าใช้จ่ายอื่น","number",'min="0" step="0.01" value="0"')}
       ${field("receiveDate","วันที่รับเงิน","date",`value="${today}" required`)}
       ${field("installments","จำนวนงวด","number",'min="1" value="2" required')}
       ${field("firstDueDate","วันครบกำหนดงวดแรก","date",`value="${today}" required`)}
-      ${selectField("receivedNow","เงินก้อนนี้เข้ามาใช้แล้วหรือยัง",[["yes","รับเงินแล้ว — เพิ่มเข้าเงินเข้า/เงินหมุน"],["no","ยังไม่ได้รับเงิน"]])}
+      ${selectField("receivedNow","เงินก้อนนี้เข้ามาใช้แล้วหรือยัง",[["yes","รับแล้ว — เพิ่มเข้าเงินเข้า/เงินหมุน"],["no","ยังไม่ได้รับ"]])}
       ${selectField("payer","ผู้จ่ายเจ้าหนี้",[["me","ฉัน"],["partner","แฟน"],["other","คนอื่น"]])}
       <div class="field full">
         <label>ยอดชำระแต่ละงวด</label>
         <div id="smartLoanInstallments" class="smart-installment-editor"></div>
-        <small>แต่ละงวดแก้ยอดเองได้ เพราะดอกเบี้ยจริงอาจทำให้ยอดแต่ละเดือนไม่เท่ากัน</small>
+        <small>แก้ยอดแต่ละงวดได้เอง เพราะยอดจริงแต่ละเดือนไม่จำเป็นต้องเท่ากัน</small>
       </div>`;
   }
 
@@ -317,7 +317,7 @@ function smartDebtFields(type,today){
     ${field("transferDate","วันที่อีกฝ่ายควรโอนงวดถัดไป","date",`value="${today}" required`)}
     ${field("partnerName","ชื่อผู้ร่วมจ่าย","text",'value="แฟน"')}
     ${selectField("payer","ผู้จ่ายเจ้าหนี้",[["me","ฉัน"],["partner","แฟน"],["other","คนอื่น"]])}
-    <div class="field full debt-form-note">บนการ์ดจะแสดง งวดทั้งหมด / จ่ายแล้ว / เหลือ / ส่วนของฉัน / ส่วนของแฟน</div>`;
+    <div class="field full debt-form-note">จะแสดงจำนวนงวด จ่ายแล้ว เหลือ ส่วนของฉัน และส่วนของแฟนบนการ์ด</div>`;
 }
 
 function renderSmartLoanInstallments(preserve=true){
@@ -325,11 +325,8 @@ function renderSmartLoanInstallments(preserve=true){
   if(!box)return;
   const count=Math.max(1,parseInt(byId("installments")?.value||"1",10));
   const first=byId("firstDueDate")?.value||todayKey();
-  const principal=num(byId("borrowedAmount")?.value);
-  const interest=num(byId("totalInterest")?.value);
-  const fee=num(byId("totalFee")?.value);
-  const defaultAmount=(principal+interest+fee)/count;
-
+  const total=num(byId("borrowedAmount")?.value)+num(byId("totalInterest")?.value)+num(byId("totalFee")?.value);
+  const def=total/count;
   const old=[];
   if(preserve){
     box.querySelectorAll(".smart-installment-row").forEach(row=>{
@@ -339,43 +336,95 @@ function renderSmartLoanInstallments(preserve=true){
       });
     });
   }
-
   box.innerHTML=Array.from({length:count},(_,i)=>{
-    const amount=old[i]?.amount || (defaultAmount?defaultAmount.toFixed(2):"");
+    const amount=old[i]?.amount || (def?def.toFixed(2):"");
     const due=old[i]?.due || makeMonthlyDate(first,i);
     return `<div class="smart-installment-row">
-      <div><strong>งวด ${i+1}/${count}</strong></div>
+      <strong>งวด ${i+1}/${count}</strong>
       <label>ยอดชำระ<input data-smart="amount" type="number" min="0" step="0.01" value="${amount}" required></label>
       <label>วันครบกำหนด<input data-smart="due" type="date" value="${due}" required></label>
     </div>`;
   }).join("");
 }
 
-function renderSmartDebtForm(selected){
-  const today=todayKey();
+function renderSmartDebtForm(type){
   const dynamic=byId("smartDebtDynamic");
   if(!dynamic)return;
-  dynamic.innerHTML=smartDebtFields(selected,today);
-
-  if(selected==="seasycash"){
+  dynamic.innerHTML=smartDebtFields(type,todayKey());
+  if(type==="seasycash"){
     renderSmartLoanInstallments(false);
-    ["installments","firstDueDate"].forEach(id=>{
-      byId(id)?.addEventListener("change",()=>renderSmartLoanInstallments(true));
-    });
-    ["borrowedAmount","totalInterest","totalFee"].forEach(id=>{
-      byId(id)?.addEventListener("input",()=>{
-        const box=byId("smartLoanInstallments");
-        if(!box)return;
-        const allEmpty=[...box.querySelectorAll('[data-smart="amount"]')].every(x=>!num(x.value));
-        if(allEmpty) renderSmartLoanInstallments(false);
-      });
-    });
+    ["installments","firstDueDate"].forEach(id=>byId(id)?.addEventListener("change",()=>renderSmartLoanInstallments(true)));
   }
 }
 
 function buildForm(){
   const today=todayKey(), now=new Date(), ym=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
   const next=new Date();next.setMonth(next.getMonth()+1);
+
+  if(currentType==="debt"){
+    dataForm.innerHTML=`
+      ${selectField("debtEntryType","เลือกรูปแบบหนี้",smartDebtTypeOptions())}
+      <div id="smartDebtDynamic" class="smart-debt-dynamic"></div>`;
+    const typeSelect=byId("debtEntryType");
+    renderSmartDebtForm(typeSelect.value);
+    typeSelect.addEventListener("change",()=>renderSmartDebtForm(typeSelect.value));
+  }else if(currentType==="shared"){
+    dataForm.innerHTML=`
+      ${selectField("sharedMode","รูปแบบหนี้ร่วม",[["one_time","ยอดร่วมครั้งเดียว"],["installment","ผ่อนร่วมคงที่ เช่น รถ"]])}
+      ${field("name","ชื่อหนี้ร่วม","text",'required placeholder="เช่น ค่างวดรถ"')}
+      ${field("totalAmount","ยอดหนี้รวม / ยอดที่ต้องจ่าย","number",'min="0" step="0.01" required')}
+      ${field("installmentAmount","ยอดต่องวด","number",'min="0" step="0.01" value="0"')}
+      ${field("installments","จำนวนงวดทั้งหมด","number",'min="1" value="1"')}
+      ${field("paidInstallments","จ่ายแล้วกี่งวด","number",'min="0" value="0"')}
+      ${field("myShare","ส่วนของฉันต่องวด","number",'min="0" step="0.01" required')}
+      ${field("partnerShare","ส่วนของแฟน / คนอื่นต่องวด","number",'min="0" step="0.01" required')}
+      ${field("transferDate","วันที่อีกฝ่ายควรโอนงวดถัดไป","date",`value="${today}" required`)}
+      ${field("dueDate","วันครบกำหนดงวดถัดไป","date",`value="${today}" required`)}
+      ${selectField("payer","ผู้จ่ายเจ้าหนี้",[["me","ฉัน"],["partner","แฟน"],["other","คนอื่น"]])}
+      ${field("partnerName","ชื่อผู้ร่วมจ่าย","text",'value="แฟน"')}
+      <div class="field full"><small>ถ้าเป็นผ่อนร่วมคงที่ ระบบจะแสดงจำนวนงวด จ่ายแล้ว เหลือ และสัดส่วนของแต่ละคนบนการ์ดหนี้</small></div>`;
+  }else if(currentType==="income"){
+    dataForm.innerHTML=`
+      ${field("name","ชื่อเงินเข้า","text",'required placeholder="เช่น เงินเดือน"')}
+      ${field("amount","จำนวนเงิน","number",'min="0" step="0.01" required')}
+      ${field("date","วันที่เงินเข้า","date",`value="${today}" required`)}
+      ${selectField("kind","ประเภท",[["income","รายได้จริง"],["pass_through","เงินผ่านมือ / เงินสำหรับจ่ายหนี้"]])}
+      ${field("note","หมายเหตุ","text",'placeholder="เช่น เงินที่แฟนโอนมาสำหรับหนี้ A"')}`;
+  }else if(currentType==="expense"){
+    dataForm.innerHTML=`
+      ${field("name","รายการค่าใช้จ่าย","text",'required')}
+      ${field("amount","จำนวนเงิน","number",'min="0" step="0.01" required')}
+      ${field("dueDate","วันครบกำหนด","date",`value="${today}" required`)}
+      ${selectField("recurring","เกิดซ้ำ",[["no","ครั้งเดียว"],["monthly","ทุกเดือน"]])}
+      ${field("months","สร้างล่วงหน้ากี่เดือน","number",'min="1" value="1"')}`;
+  }else if(currentType==="rotation"){
+    dataForm.innerHTML=`
+      ${field("name","ชื่อเงินหมุน / แหล่งยืม","text",'required')}
+      ${field("received","รับมา","number",'min="0" step="0.01" required')}
+      ${field("receiveDate","วันที่รับเงิน","date",`value="${today}" required`)}
+      ${field("repayTotal","ยอดที่ต้องคืนทั้งหมด","number",'min="0" step="0.01" required')}
+      ${field("repayDate","วันเริ่มคืน","date",`value="${isoDate(next)}" required`)}
+      ${field("installments","จำนวนงวดที่คืน","number",'min="1" value="1" required')}`;
+  }else if(currentType==="balance"){
+    dataForm.innerHTML=`<div class="field full"><label for="balance">ยอดเงินจริงปัจจุบัน</label><input id="balance" name="balance" type="number" step="0.01" value="${getCurrentBalance()}" required><small>ใส่ค่าติดลบได้ เช่น -8500</small></div>`;
+  }
+}
+
+function formData(){return Object.fromEntries(new FormData(dataForm).entries());}
+
+function makeMonthlyDate(firstDate, addMonths, dueDay=null){
+  const d=parseDate(firstDate);
+  const target=new Date(d.getFullYear(), d.getMonth()+addMonths, 1);
+  const day=dueDay || d.getDate();
+  const last=new Date(target.getFullYear(), target.getMonth()+1, 0).getDate();
+  target.setDate(Math.min(day,last));
+  return isoDate(target);
+}
+
+function addMonthsToDate(ds,add){const d=parseDate(ds);d.setMonth(d.getMonth()+add);return isoDate(d);}
+
+function saveCurrent(closeAfter=true){
+  const d=formData(); if(!dataForm.reportValidity())return;
 
   if(currentType==="debt"){
     const t=d.debtEntryType||"credit_card";
@@ -395,10 +444,10 @@ function buildForm(){
     }
 
     if(t==="installment"){
-      const per=Math.max(0,num(d.installmentAmount));
+      const per=num(d.installmentAmount);
       const totalInst=Math.max(1,num(d.installments));
       const paidInst=Math.min(totalInst,Math.max(0,num(d.paidInstallments)));
-      const remainInst=Math.max(0,totalInst-paidInst);
+      const remainInst=totalInst-paidInst;
       state.debts.push({
         id:debtId,name:d.name,type:"debt",debtKind:"installment",
         totalDebt:per*totalInst,remaining:per*remainInst,monthlyAmount:per,currentBill:per,
@@ -428,23 +477,20 @@ function buildForm(){
     }
 
     if(t==="seasycash"){
-      const borrowed=Math.max(0,num(d.borrowedAmount));
-      const interest=Math.max(0,num(d.totalInterest));
-      const fee=Math.max(0,num(d.totalFee));
-      const count=Math.max(1,num(d.installments));
+      const borrowed=num(d.borrowedAmount);
+      const interest=num(d.totalInterest);
+      const fee=num(d.totalFee);
       const rows=[...document.querySelectorAll("#smartLoanInstallments .smart-installment-row")];
       const round={
         id:uid("round"),startDate:d.receiveDate,borrowedAmount:borrowed,totalInterest:interest,totalFee:fee,
-        totalRepayment:0,installmentCount:count,moneyReceived:d.receivedNow==="yes",incomeId:null,
+        installmentCount:rows.length,moneyReceived:d.receivedNow==="yes",incomeId:null,
         installments:rows.map((row,i)=>({
           id:uid("inst"),no:i+1,
           amount:num(row.querySelector('[data-smart="amount"]').value),
-          dueDate:row.querySelector('[data-smart="due"]').value,
-          paid:false
+          dueDate:row.querySelector('[data-smart="due"]').value,paid:false
         }))
       };
       round.totalRepayment=round.installments.reduce((s,x)=>s+num(x.amount),0);
-
       const debt={
         id:debtId,name:d.name,type:"debt",debtKind:"loan",loanRoundMode:true,
         totalDebt:round.totalRepayment,remaining:round.totalRepayment,
@@ -452,12 +498,11 @@ function buildForm(){
         payer:d.payer,createdAt:todayKey(),loanRounds:[round]
       };
       state.debts.push(debt);
-
       if(d.receivedNow==="yes"){
         const incomeId=uid("inc");
         state.incomes.push({
-          id:incomeId,name:`${d.name} • รอบกู้ ${thaiDate(d.receiveDate)}`,
-          amount:borrowed,date:d.receiveDate,kind:"rotation",
+          id:incomeId,name:`${d.name} • รอบกู้ ${thaiDate(d.receiveDate)}`,amount:borrowed,
+          date:d.receiveDate,kind:"rotation",
           note:`เงินกู้/เงินหมุน • ดอกเบี้ย ${money(interest)}${fee?` • ค่าธรรมเนียม ${money(fee)}`:""}`,
           debtId,loanRoundId:round.id,received:true
         });
@@ -481,10 +526,10 @@ function buildForm(){
     }
 
     if(t==="shared_installment"){
-      const per=Math.max(0,num(d.installmentAmount));
+      const per=num(d.installmentAmount);
       const totalInst=Math.max(1,num(d.installments));
       const paidInst=Math.min(totalInst,Math.max(0,num(d.paidInstallments)));
-      const remainInst=Math.max(0,totalInst-paidInst);
+      const remainInst=totalInst-paidInst;
       state.debts.push({
         id:debtId,name:d.name,totalDebt:per*totalInst,remaining:per*remainInst,
         monthlyAmount:per,currentBill:per,dueDay:parseDate(d.dueDate).getDate(),payer:d.payer,
