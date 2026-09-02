@@ -6,6 +6,9 @@
   <meta name="theme-color" content="#10182b" />
   <title>My Money Flow</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0" rel="stylesheet">
   <link rel="icon" type="image/png" href="./my-money-flow-logo.png">
   <link rel="apple-touch-icon" href="./my-money-flow-logo.png">
 </head>
@@ -21,21 +24,21 @@
       </div>
 
       <nav class="nav" id="desktopNav">
-        <button class="nav-item active" data-page="dashboard" id="nav-dashboard">🏠 ภาพรวม</button>
-        <button class="nav-item" data-page="calendar" id="nav-calendar">📅 รายการต้องจ่าย</button>
-        <button class="nav-item" data-page="debts" id="nav-debts">💳 หนี้ทั้งหมด</button>
-        <button class="nav-item" data-page="income" id="nav-income">💵 เงินเข้า</button>
-        <button class="nav-item" data-page="rotation" id="nav-rotation">🔄 เงินหมุน</button>
-        <button class="nav-item" data-page="forecast" id="nav-forecast">📊 แผนล่วงหน้า</button>
+        <button class="nav-item active" data-page="dashboard" id="nav-dashboard"><span class="material-symbols-outlined">home</span>ภาพรวม</button>
+        <button class="nav-item" data-page="calendar" id="nav-calendar"><span class="material-symbols-outlined">calendar_month</span>รายการต้องจ่าย</button>
+        <button class="nav-item" data-page="debts" id="nav-debts"><span class="material-symbols-outlined">credit_card</span>หนี้ทั้งหมด</button>
+        <button class="nav-item" data-page="income" id="nav-income"><span class="material-symbols-outlined">payments</span>เงินเข้า</button>
+        <button class="nav-item" data-page="rotation" id="nav-rotation"><span class="material-symbols-outlined">sync_alt</span>เงินหมุน</button>
+        <button class="nav-item" data-page="forecast" id="nav-forecast"><span class="material-symbols-outlined">bar_chart</span>แผนล่วงหน้า</button>
       </nav>
 
       <div class="sidebar-footer">
-        <button class="btn btn-ghost btn-full" id="exportBtn">💾 สำรองข้อมูล</button>
+        <button class="btn btn-ghost btn-full" id="exportBtn"><span class="material-symbols-outlined">save</span>สำรองข้อมูล</button>
         <label class="btn btn-ghost btn-full file-label" id="importLabel">
-          📥 นำเข้าข้อมูล
+          <span class="material-symbols-outlined">file_upload</span>นำเข้าข้อมูล
           <input type="file" id="importInput" accept=".json" hidden />
         </label>
-        <button class="btn btn-danger-soft btn-full" id="resetBtn">🗑️ ล้างข้อมูลทั้งหมด</button>
+        <button class="btn btn-danger-soft btn-full" id="resetBtn"><span class="material-symbols-outlined">delete</span>ล้างข้อมูลทั้งหมด</button>
       </div>
     </aside>
 
@@ -51,7 +54,7 @@
               <span class="page-badge" id="pageBadge">แดชบอร์ด</span>
             </div>
             <div class="topbar-date-pill" id="datePill">
-              <span class="date-icon">📅</span>
+              <span class="date-icon material-symbols-outlined">calendar_month</span>
               <span id="todayText"></span>
             </div>
           </div>
@@ -63,7 +66,7 @@
             <span class="status-label">ออฟไลน์</span>
           </div>
           <button class="btn btn-ghost topbar-account-btn" id="accountBtn" title="จัดการบัญชีผู้ใช้">
-            <span class="account-btn-icon">👤</span>
+            <span class="account-btn-icon material-symbols-outlined">person</span>
             <span id="accountBtnText" class="account-btn-text">บัญชี</span>
           </button>
           <button class="btn btn-primary topbar-add-btn" id="openAddBtn">
@@ -71,7 +74,7 @@
             <span>เพิ่มข้อมูล</span>
           </button>
           <button class="btn btn-ghost mobile-only-btn" id="openMobileMenuBtn" aria-label="เมนูและการตั้งค่า" title="เมนูเพิ่มเติม">
-            <span>⚙️</span>
+            <span class="material-symbols-outlined">settings</span>
           </button>
         </div>
       </header>
@@ -186,7 +189,7 @@
         <article class="panel rotation-planner">
           <div class="panel-head responsive">
             <div>
-              <h3>🔄 วางแผนหมุนเงิน</h3>
+              <h3><span class="material-symbols-outlined">sync_alt</span>วางแผนหมุนเงิน</h3>
               <p>จำลองก่อนจ่ายจริง — เงินก้อนเดียวหมุนต่อได้ถึงไหน และเสียต้นทุนเท่าไร</p>
             </div>
             <button class="btn btn-secondary" id="useCurrentBalanceBtn">ใช้ยอดเงินจริงปัจจุบัน</button>
@@ -270,27 +273,27 @@
     <!-- Mobile Bottom Navigation Bar -->
     <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="แถบนำทางหลัก">
       <button class="mobile-nav-item active" data-page="dashboard" id="mob-dashboard">
-        <span class="mob-icon">🏠</span>
+        <span class="mob-icon material-symbols-outlined">home</span>
         <span class="mob-text">ภาพรวม</span>
       </button>
       <button class="mobile-nav-item" data-page="calendar" id="mob-calendar">
-        <span class="mob-icon">📅</span>
+        <span class="mob-icon material-symbols-outlined">calendar_month</span>
         <span class="mob-text">ต้องจ่าย</span>
       </button>
       <button class="mobile-nav-item" data-page="debts" id="mob-debts">
-        <span class="mob-icon">💳</span>
+        <span class="mob-icon material-symbols-outlined">credit_card</span>
         <span class="mob-text">หนี้สิน</span>
       </button>
       <button class="mobile-nav-item" data-page="income" id="mob-income">
-        <span class="mob-icon">💵</span>
+        <span class="mob-icon material-symbols-outlined">payments</span>
         <span class="mob-text">เงินเข้า</span>
       </button>
       <button class="mobile-nav-item" data-page="rotation" id="mob-rotation">
-        <span class="mob-icon">🔄</span>
+        <span class="mob-icon material-symbols-outlined">sync_alt</span>
         <span class="mob-text">เงินหมุน</span>
       </button>
       <button class="mobile-nav-item" id="mob-more" aria-label="เมนูเพิ่มเติม">
-        <span class="mob-icon">☰</span>
+        <span class="mob-icon material-symbols-outlined">menu</span>
         <span class="mob-text">เมนู</span>
       </button>
     </nav>
@@ -309,7 +312,7 @@
 
       <div class="more-menu-grid">
         <button class="more-item" data-page="forecast" id="moreForecastBtn">
-          <span class="more-item-icon">📊</span>
+          <span class="more-item-icon material-symbols-outlined">bar_chart</span>
           <div class="more-item-info">
             <strong>แผนล่วงหน้า 6 เดือน</strong>
             <small>ดูคาดการณ์กระแสเงินสดล่วงหน้า</small>
@@ -317,7 +320,7 @@
         </button>
 
         <button class="more-item" id="moreAccountBtn">
-          <span class="more-item-icon">☁️</span>
+          <span class="more-item-icon material-symbols-outlined">cloud</span>
           <div class="more-item-info">
             <strong>บัญชี & คลาวด์ซิงก์</strong>
             <small id="moreAccountStatus">เข้าสู่ระบบเพื่อซิงก์ข้อมูล</small>
@@ -325,7 +328,7 @@
         </button>
 
         <button class="more-item" id="moreExportBtn">
-          <span class="more-item-icon">💾</span>
+          <span class="more-item-icon material-symbols-outlined">save</span>
           <div class="more-item-info">
             <strong>สำรองข้อมูล (JSON)</strong>
             <small>ดาวน์โหลดไฟล์ข้อมูลเก็บไว้ในเครื่อง</small>
@@ -333,7 +336,7 @@
         </button>
 
         <label class="more-item file-label" id="moreImportLabel">
-          <span class="more-item-icon">📥</span>
+          <span class="more-item-icon material-symbols-outlined">file_upload</span>
           <div class="more-item-info">
             <strong>นำเข้าข้อมูล (JSON)</strong>
             <small>กู้คืนข้อมูลจากไฟล์สำรอง</small>
@@ -342,7 +345,7 @@
         </label>
 
         <button class="more-item danger" id="moreResetBtn">
-          <span class="more-item-icon">🗑️</span>
+          <span class="more-item-icon material-symbols-outlined">delete</span>
           <div class="more-item-info">
             <strong>ล้างข้อมูลทั้งหมด</strong>
             <small>ล้างข้อมูลในเครื่องเพื่อเริ่มใหม่</small>
@@ -363,12 +366,12 @@
       </div>
 
       <div class="add-type-grid">
-        <button class="add-type active" data-type="debt">💳<span>เพิ่มหนี้</span></button>
-        <button class="add-type" data-type="shared">🤝<span>หนี้ร่วม</span></button>
-        <button class="add-type" data-type="income">💵<span>เงินเข้า</span></button>
-        <button class="add-type" data-type="expense">🧾<span>ค่าใช้จ่าย</span></button>
-        <button class="add-type" data-type="rotation">🔄<span>เงินหมุน</span></button>
-        <button class="add-type" data-type="balance">⚖️<span>ปรับยอดเงิน</span></button>
+        <button class="add-type active" data-type="debt"><span class="material-symbols-outlined">credit_card</span><span>เพิ่มหนี้</span></button>
+        <button class="add-type" data-type="shared"><span class="material-symbols-outlined">handshake</span><span>หนี้ร่วม</span></button>
+        <button class="add-type" data-type="income"><span class="material-symbols-outlined">payments</span><span>เงินเข้า</span></button>
+        <button class="add-type" data-type="expense"><span class="material-symbols-outlined">receipt_long</span><span>ค่าใช้จ่าย</span></button>
+        <button class="add-type" data-type="rotation"><span class="material-symbols-outlined">sync_alt</span><span>เงินหมุน</span></button>
+        <button class="add-type" data-type="balance"><span class="material-symbols-outlined">balance</span><span>ปรับยอดเงิน</span></button>
       </div>
 
       <form id="dataForm" class="form-grid"></form>
@@ -418,7 +421,7 @@
           <small id="lastSyncText">ยังไม่ได้ซิงก์</small>
         </div>
         <div class="auth-actions">
-          <button class="btn btn-secondary" id="syncNowBtn">☁️ ซิงก์ตอนนี้</button>
+          <button class="btn btn-secondary" id="syncNowBtn"><span class="material-symbols-outlined">cloud_sync</span>ซิงก์ตอนนี้</button>
           <button class="btn btn-danger-soft" id="logoutBtn">ออกจากระบบ</button>
         </div>
       </div>
