@@ -572,7 +572,7 @@ button {
 }
 
 #dashboard > div:nth-of-type(2) {
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(4, 1fr);
 }
 
 #dashboard .grid-2 > article:nth-of-type(1) {
@@ -643,21 +643,23 @@ button {
 .compact-item {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
-  padding: 11px 14px;
+  padding: 6px 10px;
   border-radius: var(--radius-md);
   background: #f8fafc;
   border: 1px solid var(--line-light);
 }
 
 .compact-item strong {
-  font-size: 0.92rem;
+  font-size: 0.85rem;
+  line-height: 1.2;
 }
 
 .compact-item small {
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
+  line-height: 1.2;
 }
 
 .amount-danger { color: var(--danger) !important; font-weight: 800; }
@@ -2205,7 +2207,7 @@ tr:last-child td {
 
   /* Layout Collapse for Mobile */
   .hero-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 10px;
     margin-bottom: 16px;
   }
@@ -2563,7 +2565,7 @@ tr:last-child td {
    ============================================================ */
 @media (max-width: 380px) {
   .hero-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(4, 1fr);
     gap: 6px;
   }
 
@@ -2658,7 +2660,7 @@ tr:last-child td {
 }
 
 .add-type.active .ph {
-  color: #ffffff;
+  color: var(--primary);
 }
 
 .mini-edit-btn .ph, .mini-delete-btn .ph {
@@ -2765,4 +2767,18 @@ tr:last-child td {
   .start-fresh-guide{grid-template-columns:1fr}
   .start-fresh-actions{display:grid;grid-template-columns:1fr}
   .start-fresh-actions .btn{width:100%}
+}
+
+div:nth-of-type(1) > main#mainContent:nth-of-type(1) > section#dashboard:nth-of-type(1) > div:nth-of-type(2) {
+  grid-template-columns: repeat(4, 1fr) !important;
+}
+
+div:nth-of-type(1) > main#mainContent:nth-of-type(1) > section#dashboard:nth-of-type(1) > div:nth-of-type(3) {
+  grid-template-columns: 1fr !important;
+}
+
+div:nth-of-type(1) > main#mainContent:nth-of-type(1) > section#dashboard:nth-of-type(1) > div:nth-of-type(3) > article:nth-of-type(2) > div#upcomingList:nth-of-type(2) {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 12px !important;
 }

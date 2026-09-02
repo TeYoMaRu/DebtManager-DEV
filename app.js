@@ -770,8 +770,12 @@ function renderDashboard(){
   if(min<0){box.className="situation-box danger";box.innerHTML=`<strong><i class="ph-fill ph-warning-circle" style="color:var(--danger)"></i> มีโอกาสเงินไม่พอ</strong><br>จุดต่ำสุดประมาณ <strong>${money(min)}</strong> วันที่ <strong>${thaiDate(minDate)}</strong><br>ควรเตรียมเพิ่มอย่างน้อย <strong>${money(Math.abs(min))}</strong>`;}
   else{box.className="situation-box good";box.innerHTML=`<strong><i class="ph-fill ph-check-circle" style="color:var(--good)"></i> จากข้อมูลที่มี เดือนนี้ยังผ่านได้</strong><br>ยอดต่ำสุดประมาณ <strong>${money(min)}</strong><br>คาดว่าสิ้นเดือนเหลือ <strong>${money(end)}</strong>`;}
 
-  const upcoming=state.payments.filter(p=>!p.paid).sort((a,b)=>a.dueDate.localeCompare(b.dueDate)).slice(0,6);
-  byId("upcomingList").innerHTML=upcoming.length?upcoming.map(p=>`<div class="compact-item"><div><strong>${p.name}</strong><br><small>${thaiDate(p.dueDate)} ${p.type==="shared"?"• หนี้ร่วม":""}</small></div><strong class="${p.dueDate<todayKey()?"amount-danger":""}">${money(p.amount)}</strong></div>`).join(""):`<div class="empty">ยังไม่มีรายการที่ต้องจ่าย</div>`;
+  const [yStr, mStr] = ym.split('-');
+  let nextY = parseInt(yStr), nextM = parseInt(mStr) + 1;
+  if (nextM > 12) { nextM = 1; nextY++; }
+  const nextMonth30th = `${nextY}-${nextM.toString().padStart(2, '0')}-30`;
+  const upcoming=state.payments.filter(p=>!p.paid && p.dueDate<=nextMonth30th).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
+  byId("upcomingList").innerHTML=upcoming.length?upcoming.map(p=>`<div class="compact-item"><div style="display:flex; gap:6px; align-items:baseline; flex-wrap:wrap;"><strong style="background:#dcfce7; color:#166534; padding:2px 6px; border-radius:4px;">${p.name}</strong> <small style="padding:2px 6px; border-radius:4px; font-weight:600; ${p.dueDate<=todayKey()?"color:var(--danger);background:var(--danger-soft)":"color:var(--primary);background:var(--primary-soft)"}">${thaiDate(p.dueDate)} ${p.type==="shared"?"• หนี้ร่วม":""}</small></div><strong class="${p.dueDate<todayKey()?"amount-danger":""}" style="white-space:nowrap;">${money(p.amount)}</strong></div>`).join(""):`<div class="empty">ยังไม่มีรายการที่ต้องจ่าย</div>`;
 }
 
 function renderMonthOptions(force=false){
