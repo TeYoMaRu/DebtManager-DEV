@@ -2,8 +2,8 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#10182b" />
   <title>My Money Flow</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" type="image/png" href="./my-money-flow-logo.png">
@@ -11,44 +11,68 @@
 </head>
 <body>
   <div class="app-shell">
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <div class="brand">
         <div class="brand-logo"><img src="./my-money-flow-logo.png" alt="My Money Flow"></div>
-        <div>
+        <div class="brand-text">
           <h1>My Money Flow</h1>
           <p>บริหารเงิน • บริหารหนี้</p>
         </div>
       </div>
 
-      <nav class="nav">
-        <button class="nav-item active" data-page="dashboard">🏠 ภาพรวม</button>
-        <button class="nav-item" data-page="calendar">📅 รายการต้องจ่าย</button>
-        <button class="nav-item" data-page="debts">💳 หนี้ทั้งหมด</button>
-        <button class="nav-item" data-page="income">💵 เงินเข้า</button>
-        <button class="nav-item" data-page="rotation">🔄 เงินหมุน</button>
-        <button class="nav-item" data-page="forecast">📊 แผนล่วงหน้า</button>
+      <nav class="nav" id="desktopNav">
+        <button class="nav-item active" data-page="dashboard" id="nav-dashboard">🏠 ภาพรวม</button>
+        <button class="nav-item" data-page="calendar" id="nav-calendar">📅 รายการต้องจ่าย</button>
+        <button class="nav-item" data-page="debts" id="nav-debts">💳 หนี้ทั้งหมด</button>
+        <button class="nav-item" data-page="income" id="nav-income">💵 เงินเข้า</button>
+        <button class="nav-item" data-page="rotation" id="nav-rotation">🔄 เงินหมุน</button>
+        <button class="nav-item" data-page="forecast" id="nav-forecast">📊 แผนล่วงหน้า</button>
       </nav>
 
       <div class="sidebar-footer">
-        <button class="btn btn-ghost btn-full" id="exportBtn">สำรองข้อมูล</button>
-        <label class="btn btn-ghost btn-full file-label">
-          นำเข้าข้อมูล
+        <button class="btn btn-ghost btn-full" id="exportBtn">💾 สำรองข้อมูล</button>
+        <label class="btn btn-ghost btn-full file-label" id="importLabel">
+          📥 นำเข้าข้อมูล
           <input type="file" id="importInput" accept=".json" hidden />
         </label>
-        <button class="btn btn-danger-soft btn-full" id="resetBtn">ล้างข้อมูลทั้งหมด</button>
+        <button class="btn btn-danger-soft btn-full" id="resetBtn">🗑️ ล้างข้อมูลทั้งหมด</button>
       </div>
     </aside>
 
-    <main class="main">
-      <header class="topbar">
-        <div>
-          <h2 id="pageTitle">ภาพรวม</h2>
-          <p id="todayText"></p>
+    <main class="main" id="mainContent">
+      <header class="topbar" id="topbar">
+        <div class="topbar-title-area">
+          <div class="mobile-brand-mini" title="My Money Flow">
+            <img src="./my-money-flow-logo.png" alt="Logo" class="mobile-logo-img">
+          </div>
+          <div class="topbar-text-group">
+            <div class="topbar-title-row">
+              <h2 id="pageTitle">ภาพรวม</h2>
+              <span class="page-badge" id="pageBadge">แดชบอร์ด</span>
+            </div>
+            <div class="topbar-date-pill" id="datePill">
+              <span class="date-icon">📅</span>
+              <span id="todayText"></span>
+            </div>
+          </div>
         </div>
+
         <div class="topbar-actions">
-          <span class="cloud-status offline" id="cloudStatus">☁️ ยังไม่ได้เข้าสู่ระบบ</span>
-          <button class="btn btn-ghost" id="accountBtn">บัญชี</button>
-          <button class="btn btn-primary" id="openAddBtn">＋ เพิ่มข้อมูล</button>
+          <div class="cloud-status offline" id="cloudStatus" title="สถานะ Cloud Sync">
+            <span class="status-dot"></span>
+            <span class="status-label">ออฟไลน์</span>
+          </div>
+          <button class="btn btn-ghost topbar-account-btn" id="accountBtn" title="จัดการบัญชีผู้ใช้">
+            <span class="account-btn-icon">👤</span>
+            <span id="accountBtnText" class="account-btn-text">บัญชี</span>
+          </button>
+          <button class="btn btn-primary topbar-add-btn" id="openAddBtn">
+            <span class="btn-icon">＋</span>
+            <span>เพิ่มข้อมูล</span>
+          </button>
+          <button class="btn btn-ghost mobile-only-btn" id="openMobileMenuBtn" aria-label="เมนูและการตั้งค่า" title="เมนูเพิ่มเติม">
+            <span>⚙️</span>
+          </button>
         </div>
       </header>
 
@@ -237,7 +261,95 @@
       </section>
     </main>
 
-    <button class="fab" id="fabAdd" aria-label="เพิ่มข้อมูล">＋</button>
+    <!-- Floating Action Button for Mobile -->
+    <button class="fab" id="fabAdd" aria-label="เพิ่มข้อมูล" title="เพิ่มข้อมูล">
+      <span class="fab-icon">＋</span>
+      <span class="fab-label">เพิ่ม</span>
+    </button>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="แถบนำทางหลัก">
+      <button class="mobile-nav-item active" data-page="dashboard" id="mob-dashboard">
+        <span class="mob-icon">🏠</span>
+        <span class="mob-text">ภาพรวม</span>
+      </button>
+      <button class="mobile-nav-item" data-page="calendar" id="mob-calendar">
+        <span class="mob-icon">📅</span>
+        <span class="mob-text">ต้องจ่าย</span>
+      </button>
+      <button class="mobile-nav-item" data-page="debts" id="mob-debts">
+        <span class="mob-icon">💳</span>
+        <span class="mob-text">หนี้สิน</span>
+      </button>
+      <button class="mobile-nav-item" data-page="income" id="mob-income">
+        <span class="mob-icon">💵</span>
+        <span class="mob-text">เงินเข้า</span>
+      </button>
+      <button class="mobile-nav-item" data-page="rotation" id="mob-rotation">
+        <span class="mob-icon">🔄</span>
+        <span class="mob-text">เงินหมุน</span>
+      </button>
+      <button class="mobile-nav-item" id="mob-more" aria-label="เมนูเพิ่มเติม">
+        <span class="mob-icon">☰</span>
+        <span class="mob-text">เมนู</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Mobile More Menu / Settings Modal -->
+  <div class="modal-backdrop hidden" id="moreModal">
+    <div class="modal more-modal">
+      <div class="modal-head">
+        <div>
+          <h3>เมนูและการตั้งค่า</h3>
+          <p>จัดการข้อมูลและเครื่องมือเพิ่มเติม</p>
+        </div>
+        <button class="icon-btn" id="closeMoreBtn">✕</button>
+      </div>
+
+      <div class="more-menu-grid">
+        <button class="more-item" data-page="forecast" id="moreForecastBtn">
+          <span class="more-item-icon">📊</span>
+          <div class="more-item-info">
+            <strong>แผนล่วงหน้า 6 เดือน</strong>
+            <small>ดูคาดการณ์กระแสเงินสดล่วงหน้า</small>
+          </div>
+        </button>
+
+        <button class="more-item" id="moreAccountBtn">
+          <span class="more-item-icon">☁️</span>
+          <div class="more-item-info">
+            <strong>บัญชี & คลาวด์ซิงก์</strong>
+            <small id="moreAccountStatus">เข้าสู่ระบบเพื่อซิงก์ข้อมูล</small>
+          </div>
+        </button>
+
+        <button class="more-item" id="moreExportBtn">
+          <span class="more-item-icon">💾</span>
+          <div class="more-item-info">
+            <strong>สำรองข้อมูล (JSON)</strong>
+            <small>ดาวน์โหลดไฟล์ข้อมูลเก็บไว้ในเครื่อง</small>
+          </div>
+        </button>
+
+        <label class="more-item file-label" id="moreImportLabel">
+          <span class="more-item-icon">📥</span>
+          <div class="more-item-info">
+            <strong>นำเข้าข้อมูล (JSON)</strong>
+            <small>กู้คืนข้อมูลจากไฟล์สำรอง</small>
+          </div>
+          <input type="file" id="moreImportInput" accept=".json" hidden />
+        </label>
+
+        <button class="more-item danger" id="moreResetBtn">
+          <span class="more-item-icon">🗑️</span>
+          <div class="more-item-info">
+            <strong>ล้างข้อมูลทั้งหมด</strong>
+            <small>ล้างข้อมูลในเครื่องเพื่อเริ่มใหม่</small>
+          </div>
+        </button>
+      </div>
+    </div>
   </div>
 
   <div class="modal-backdrop hidden" id="addModal">

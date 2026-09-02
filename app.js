@@ -104,16 +104,21 @@ async function loadCloudState(){
   }
 }
 
-function setCloudStatus(mode,text){
+function setCloudStatus(mode, text){
   const el=byId("cloudStatus");
   if(!el) return;
   el.className="cloud-status "+mode;
-  el.textContent=text;
+  const label = el.querySelector(".status-label");
+  if(label){
+    label.textContent = text;
+  }else{
+    el.textContent = text;
+  }
 }
 
 async function initAuth(){
   if(!sb){
-    setCloudStatus("error","⚠️ โหลด Supabase ไม่ได้");
+    setCloudStatus("error","Supabase ไม่พร้อม");
     return;
   }
   const { data:{ session } } = await sb.auth.getSession();
@@ -132,13 +137,19 @@ function updateAuthUI(){
   const signed=!!currentUser;
   byId("authSignedOut")?.classList.toggle("hidden",signed);
   byId("authSignedIn")?.classList.toggle("hidden",!signed);
+  const accBtnText = byId("accountBtnText");
   if(signed){
-    byId("accountEmail").textContent=currentUser.email || currentUser.id;
-    setCloudStatus("online","☁️ เชื่อมต่อแล้ว");
-    byId("accountBtn").textContent="บัญชี";
+    const emailVal = currentUser.email || currentUser.id || "บัญชีผู้ใช้";
+    if(byId("accountEmail")) byId("accountEmail").textContent = emailVal;
+    setCloudStatus("online", "ออนไลน์");
+    if(accBtnText){
+      const short = (currentUser.email || "บัญชี").split("@")[0];
+      accBtnText.textContent = short.length > 8 ? short.slice(0, 7) + "…" : short;
+    }
   }else{
-    setCloudStatus("offline","☁️ ยังไม่ได้เข้าสู่ระบบ");
+    setCloudStatus("offline", "ออฟไลน์");
     if(byId("accountEmail")) byId("accountEmail").textContent="-";
+    if(accBtnText) accBtnText.textContent = "บัญชี";
   }
 }
 
@@ -154,20 +165,73 @@ function byId(id){ return document.getElementById(id); }
 function toast(msg){ const t=byId("toast"); if(!t)return; t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200); }
 
 const pageTitles={dashboard:"ภาพรวม",calendar:"รายการต้องจ่าย",debts:"หนี้ทั้งหมด",income:"เงินเข้า",rotation:"เงินหมุน",forecast:"แผนล่วงหน้า"};
+const pageBadges={dashboard:"แดชบอร์ด",calendar:"ปฏิทินรายจ่าย",debts:"ภาพรวมหนี้",income:"บันทึกรายรับ",rotation:"วางแผนเงินหมุน",forecast:"คาดการณ์ 6 เดือน"};
+
+function navigateTo(pageId){
+  if(!pageTitles[pageId]) return;
+  document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active", b.dataset.page===pageId));
+  document.querySelectorAll(".mobile-nav-item").forEach(b=>b.classList.toggle("active", b.dataset.page===pageId));
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  const targetPage = byId(pageId);
+  if(targetPage) targetPage.classList.add("active");
+  const titleEl = byId("pageTitle");
+  if(titleEl) titleEl.textContent = pageTitles[pageId];
+  const badgeEl = byId("pageBadge");
+  if(badgeEl && pageBadges[pageId]) badgeEl.textContent = pageBadges[pageId];
+  renderAll();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
 
 document.querySelectorAll(".nav-item").forEach(btn=>{
   btn.addEventListener("click",()=>{
-    document.querySelectorAll(".nav-item").forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-    byId(btn.dataset.page).classList.add("active");
-    byId("pageTitle").textContent=pageTitles[btn.dataset.page];
-    renderAll();
-    window.scrollTo({top:0,behavior:"smooth"});
+    if(btn.dataset.page) navigateTo(btn.dataset.page);
   });
 });
 
-byId("todayText").textContent=new Date().toLocaleDateString("th-TH",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+document.querySelectorAll(".mobile-nav-item").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    if(btn.dataset.page) navigateTo(btn.dataset.page);
+  });
+});
+
+const todayEl = byId("todayText");
+if(todayEl){
+  todayEl.textContent = new Date().toLocaleDateString("th-TH", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+/* ===== Mobile More Menu / Settings Modal ===== */
+const moreModal = byId("moreModal");
+function openMore(){
+  if(!moreModal) return;
+  moreModal.classList.remove("hidden");
+  const st = byId("moreAccountStatus");
+  if(st){
+    st.textContent = currentUser ? `เชื่อมต่อด้วย ${currentUser.email||"บัญชีของคุณ"}` : "เข้าสู่ระบบเพื่อซิงก์ข้อมูล";
+  }
+}
+function closeMore(){
+  if(moreModal) moreModal.classList.add("hidden");
+}
+
+byId("mob-more")?.addEventListener("click", openMore);
+byId("openMobileMenuBtn")?.addEventListener("click", openMore);
+byId("closeMoreBtn")?.addEventListener("click", closeMore);
+moreModal?.addEventListener("click", e=>{ if(e.target===moreModal) closeMore(); });
+
+byId("moreForecastBtn")?.addEventListener("click", ()=>{
+  closeMore();
+  navigateTo("forecast");
+});
+
+byId("moreAccountBtn")?.addEventListener("click", ()=>{
+  closeMore();
+  openAuth();
+});
 
 /* ===== Auth UI ===== */
 const authModal=byId("authModal");
@@ -227,7 +291,11 @@ addModal.addEventListener("click",e=>{if(e.target===addModal)closeModal();});
 document.querySelectorAll(".add-type").forEach(btn=>btn.onclick=()=>{currentType=btn.dataset.type;setActiveType();buildForm();});
 function setActiveType(){document.querySelectorAll(".add-type").forEach(b=>b.classList.toggle("active",b.dataset.type===currentType));}
 
-const field=(name,label,type="text",extra="")=>`<div class="field"><label for="${name}">${label}</label><input id="${name}" name="${name}" type="${type}" ${extra}></div>`;
+const field=(name,label,type="text",extra="")=>{
+  const isNum = type==="number";
+  const numMode = isNum && !extra.includes("inputmode") ? ' inputmode="decimal"' : '';
+  return `<div class="field"><label for="${name}">${label}</label><input id="${name}" name="${name}" type="${type}"${numMode} ${extra}></div>`;
+};
 const selectField=(name,label,options)=>`<div class="field"><label for="${name}">${label}</label><select id="${name}" name="${name}">${options.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join("")}</select></div>`;
 
 
@@ -1197,9 +1265,56 @@ function ensureFlexibleLoanData(){
 function renderAll(){
   ensureFlexibleLoanData();renderDashboard();renderPayments();renderDebts();renderIncome();renderRotations();renderForecast();renderRotationPlanner();renderSavedPlans();}
 
-/* ===== Backup / Import / Reset ===== */
-byId("exportBtn").onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`money-flow-backup-${todayKey()}.json`;a.click();URL.revokeObjectURL(a.href);};
-byId("importInput").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;try{replaceState(JSON.parse(await f.text()));saveState();renderAll();toast("นำเข้าข้อมูลแล้ว");}catch{alert("ไฟล์ข้อมูลไม่ถูกต้อง");}e.target.value="";});
-byId("resetBtn").onclick=()=>{if(!confirm("ต้องการล้างข้อมูลทั้งหมดจริงหรือไม่?"))return;replaceState(defaultState());saveState();renderAll();toast("ล้างข้อมูลแล้ว");};
+/* ===== Backup / Import / Reset (Desktop + Mobile) ===== */
+function exportData(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`money-flow-backup-${todayKey()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("ดาวน์โหลดไฟล์สำรองข้อมูลแล้ว");
+}
+
+async function handleImportFile(file){
+  if(!file) return;
+  try{
+    const json = JSON.parse(await file.text());
+    replaceState(json);
+    saveState();
+    renderAll();
+    toast("นำเข้าข้อมูลเรียบร้อยแล้ว");
+  }catch(err){
+    console.error(err);
+    alert("ไฟล์ข้อมูลไม่ถูกต้อง กรุณาเลือกไฟล์ .json ที่สำรองจาก My Money Flow");
+  }
+}
+
+function handleResetData(){
+  if(!confirm("ต้องการล้างข้อมูลทั้งหมดในเครื่องจริงหรือไม่?\n(ข้อมูลทั้งหมดจะถูกรีเซ็ตเป็นค่าเริ่มต้น)")) return;
+  replaceState(defaultState());
+  saveState();
+  renderAll();
+  toast("ล้างข้อมูลเรียบร้อยแล้ว");
+}
+
+byId("exportBtn")?.addEventListener("click", exportData);
+byId("moreExportBtn")?.addEventListener("click", ()=>{ closeMore(); exportData(); });
+
+byId("importInput")?.addEventListener("change", async e=>{
+  const f=e.target.files[0];
+  if(f) await handleImportFile(f);
+  e.target.value="";
+});
+
+byId("moreImportInput")?.addEventListener("change", async e=>{
+  const f=e.target.files[0];
+  closeMore();
+  if(f) await handleImportFile(f);
+  e.target.value="";
+});
+
+byId("resetBtn")?.addEventListener("click", handleResetData);
+byId("moreResetBtn")?.addEventListener("click", ()=>{ closeMore(); handleResetData(); });
 
 renderMonthOptions();buildForm();renderAll();initAuth();
