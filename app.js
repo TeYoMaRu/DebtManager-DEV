@@ -774,8 +774,32 @@ function renderDashboard(){
   let nextY = parseInt(yStr), nextM = parseInt(mStr) + 1;
   if (nextM > 12) { nextM = 1; nextY++; }
   const nextMonth30th = `${nextY}-${nextM.toString().padStart(2, '0')}-30`;
-  const upcoming=state.payments.filter(p=>!p.paid && p.dueDate<=nextMonth30th).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
-  byId("upcomingList").innerHTML=upcoming.length?upcoming.map(p=>`<div class="compact-item"><div style="display:flex; gap:6px; align-items:baseline; flex-wrap:wrap;"><strong style="background:#dcfce7; color:#166534; padding:2px 6px; border-radius:4px;">${p.name}</strong> <small style="padding:2px 6px; border-radius:4px; font-weight:600; ${p.dueDate<=todayKey()?"color:var(--danger);background:var(--danger-soft)":"color:var(--primary);background:var(--primary-soft)"}">${thaiDate(p.dueDate)} ${p.type==="shared"?"• หนี้ร่วม":""}</small></div><strong class="${p.dueDate<todayKey()?"amount-danger":""}" style="white-space:nowrap;">${money(p.amount)}</strong></div>`).join(""):`<div class="empty">ยังไม่มีรายการที่ต้องจ่าย</div>`;
+  const upcoming=state.payments.filter(p=>!p.paid && p.dueDate<=nextMonth30th).sort((a,b)=>(a.order||0)-(b.order||0) || a.dueDate.localeCompare(b.dueDate));
+  const todayDateObj = parseDate(todayKey());
+  byId("upcomingList").innerHTML=upcoming.length?upcoming.map(p=>{
+    const diffDays = Math.ceil((parseDate(p.dueDate) - todayDateObj) / (1000 * 60 * 60 * 24));
+    let badge = diffDays <= 0 ? `<span class="badge-pulse" style="display:inline-block; font-size:0.7rem; padding:2px 6px; border-radius:4px; font-weight:bold; background:var(--danger-soft); color:var(--danger);">ด่วนมาก</span>` : diffDays <= 7 ? `<span style="font-size:0.7rem; padding:2px 6px; border-radius:4px; font-weight:bold; background:#fffbeb; color:#d97706;">ปานกลาง</span>` : `<span style="font-size:0.7rem; padding:2px 6px; border-radius:4px; font-weight:bold; background:var(--success-soft); color:var(--success);">ทั่วไป</span>`;
+    return `<div class="compact-item" data-id="${p.id}"><div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;"><i class="ph ph-dots-six-vertical drag-handle" style="cursor:grab;color:var(--text-light);font-size:1.1rem;margin-right:2px;" title="ลากเพื่อจัดลำดับ"></i>${p.dueDate<=todayKey()?'<i class="ph-fill ph-warning-circle" style="color:var(--danger)" title="ด่วน"></i>':'<i class="ph-fill ph-clock" style="color:var(--primary)" title="รอจ่าย"></i>'}<strong style="background:#dcfce7; color:#166534; padding:2px 6px; border-radius:4px;">${p.name}</strong> <small style="padding:2px 6px; border-radius:4px; font-weight:600; ${p.dueDate<=todayKey()?"color:var(--danger);background:var(--danger-soft)":"color:var(--primary);background:var(--primary-soft)"}">${thaiDate(p.dueDate)} ${p.type==="shared"?"• หนี้ร่วม":""}</small>${badge}</div><div style="display:flex;align-items:center;gap:8px;"><strong class="${p.dueDate<todayKey()?"amount-danger":""}" style="white-space:nowrap;">${money(p.amount)}</strong><button class="icon-btn" style="width:24px;height:24px;min-height:24px;color:var(--text-light);border-radius:4px;" onclick="window.snoozePayment('${p.id}')" title="เลื่อนไปพรุ่งนี้"><i class="ph ph-clock-clockwise"></i></button></div></div>`;
+  }).join(""):`<div class="empty">ยังไม่มีรายการที่ต้องจ่าย</div>`;
+
+  if (window.Sortable) {
+    if (window.upcomingSortable) window.upcomingSortable.destroy();
+    window.upcomingSortable = window.Sortable.create(byId("upcomingList"), {
+      handle: '.drag-handle',
+      animation: 150,
+      forceFallback: true,
+      onEnd: function (evt) {
+        const itemEls = Array.from(byId("upcomingList").querySelectorAll('.compact-item'));
+        itemEls.forEach((el, index) => {
+          const pid = el.getAttribute('data-id');
+          const payment = state.payments.find(x => x.id === pid);
+          if (payment) payment.order = index;
+        });
+        saveState();
+        toast("บันทึกการจัดเรียงแล้ว");
+      }
+    });
+  }
 }
 
 function renderMonthOptions(force=false){
@@ -809,6 +833,18 @@ function renderPayments(){
     <div class="hide-mobile">${p.paid?"จ่ายแล้ว":"ยังไม่จ่าย"}</div>
     <div style="text-align:right"><strong>${money(p.amount)}</strong><br><div class="row-actions">${(p.type==="shared"||p.type==="shared_installment")&&!p.paid?`<button class="action-link" onclick="receiveShared('${p.id}')">รับเงินร่วม</button>`:""}<button class="mini-edit-btn" onclick="editPayment('${p.id}')"><i class="ph ph-pencil-simple"></i></button><button class="mini-delete-btn" onclick="deletePayment('${p.id}')"><i class="ph ph-trash"></i></button></div></div></div>`).join(""):`<div class="empty">ไม่มีรายการในเดือนนี้</div>`;
 }
+
+window.snoozePayment=function(id){
+  const p=state.payments.find(x=>x.id===id);
+  if(!p)return;
+  const d=parseDate(p.dueDate);
+  d.setDate(d.getDate()+1);
+  p.dueDate=isoDate(d);
+  saveState();
+  if(byId("dashboard").classList.contains("active")) renderDashboard();
+  if(byId("calendar").classList.contains("active") && typeof renderPayments==='function') renderPayments();
+  toast(`เลื่อน "${p.name}" เป็น ${thaiDate(p.dueDate)} แล้ว`);
+};
 
 window.togglePaid=function(id){
   const p=state.payments.find(x=>x.id===id);if(!p)return;
@@ -1062,11 +1098,11 @@ function renderDebts(){
 
 function renderIncome(){
   const list=[...state.incomes].sort((a,b)=>b.date.localeCompare(a.date));
-  byId("incomeList").innerHTML=list.length?`<table><thead><tr><th>วันที่</th><th>รายการ</th><th>ประเภท</th><th>จำนวน</th><th>หมายเหตุ</th></tr></thead><tbody>${list.map(x=>`<tr><td>${thaiDate(x.date)}</td><td>${x.name}</td><td>${x.kind==="income"?"รายได้จริง":x.kind==="rotation"?"เงินหมุน":"เงินผ่านมือ"}</td><td class="amount-success">${money(x.amount)}</td><td>${x.note||"-"}</td></tr>`).join("")}</tbody></table>`:`<div class="empty">ยังไม่มีข้อมูลเงินเข้า</div>`;
+  byId("incomeList").innerHTML=list.length?`<div style="overflow-x:auto;"><table><thead><tr><th>วันที่</th><th>รายการ</th><th>ประเภท</th><th>จำนวน</th><th>หมายเหตุ</th><th>จัดการ</th></tr></thead><tbody>${list.map(x=>`<tr><td style="white-space:nowrap;">${thaiDate(x.date)}</td><td style="min-width:120px;">${x.name}</td><td style="white-space:nowrap;">${x.kind==="income"?"รายได้จริง":x.kind==="rotation"?"เงินหมุน":"เงินผ่านมือ"}</td><td class="amount-success" style="white-space:nowrap;">${money(x.amount)}</td><td>${x.note||"-"}</td><td style="white-space:nowrap;"><button class="mini-delete-btn" onclick="deleteIncome('${x.id}')"><i class="ph ph-trash"></i></button></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">ยังไม่มีข้อมูลเงินเข้า</div>`;
 }
 
 function renderRotations(){
-  byId("rotationList").innerHTML=state.rotations.length?state.rotations.map(r=>`<div class="debt-card"><h4>${r.name}</h4><p>รับ ${thaiDate(r.receiveDate)}</p><div class="big">${money(r.remaining)}</div><div class="debt-meta"><div><small>รับมา</small><strong>${money(r.received)}</strong></div><div><small>ต้องคืน</small><strong>${money(r.repayTotal)}</strong></div><div><small>เริ่มคืน</small><strong>${thaiDate(r.repayDate)}</strong></div><div><small>จำนวนงวด</small><strong>${r.installments}</strong></div></div></div>`).join(""):`<div class="empty">ยังไม่มีเงินหมุน / เงินยืม</div>`;
+  byId("rotationList").innerHTML=state.rotations.length?state.rotations.map(r=>`<div class="debt-card"><h4>${r.name}</h4><p>รับ ${thaiDate(r.receiveDate)}</p><div class="big">${money(r.remaining)}</div><div class="debt-meta"><div><small>รับมา</small><strong>${money(r.received)}</strong></div><div><small>ต้องคืน</small><strong>${money(r.repayTotal)}</strong></div><div><small>เริ่มคืน</small><strong>${thaiDate(r.repayDate)}</strong></div><div><small>จำนวนงวด</small><strong>${r.installments}</strong></div></div><div class="card-actions" style="margin-top:12px;border-top:1px solid var(--line-light);padding-top:12px;"><button class="delete-btn" onclick="deleteRotation('${r.id}')"><i class="ph ph-trash"></i> ลบรายการนี้</button></div></div>`).join(""):`<div class="empty">ยังไม่มีเงินหมุน / เงินยืม</div>`;
 }
 
 function renderForecast(){
