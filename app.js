@@ -370,18 +370,23 @@ function smartDebtFields(type,today){
   if(type==="seasycash"){
     return `
       ${field("name","ชื่อสินเชื่อ","text",'required value="SEasyCash"')}
-      ${field("borrowedAmount","เงินต้นที่กู้รอบนี้","number",'min="0" step="0.01" required')}
-      ${field("totalInterest","ดอกเบี้ยที่ต้องจ่ายรวม","number",'min="0" step="0.01" value="0" required')}
-      ${field("totalFee","ค่าธรรมเนียม / ค่าใช้จ่ายอื่น","number",'min="0" step="0.01" value="0"')}
+      ${field("borrowedAmount","ยอดเงินที่กด / ได้รับจริง","number",'min="0" step="0.01" required placeholder="เช่น 10000"')}
       ${field("receiveDate","วันที่รับเงิน","date",`value="${today}" required`)}
-      ${field("installments","จำนวนงวด","number",'min="1" value="2" required')}
+      ${field("installments","เลือกผ่อนกี่เดือน","number",'min="1" value="2" required')}
       ${field("firstDueDate","วันครบกำหนดงวดแรก","date",`value="${today}" required`)}
       ${selectField("receivedNow","เงินก้อนนี้เข้ามาใช้แล้วหรือยัง",[["yes","รับแล้ว — เพิ่มเข้าเงินเข้า/เงินหมุน"],["no","ยังไม่ได้รับ"]])}
       ${selectField("payer","ผู้จ่ายเจ้าหนี้",[["me","ฉัน"],["partner","แฟน"],["other","คนอื่น"]])}
+      <div class="field full debt-form-note">
+        กรอกยอดแต่ละงวดตามตารางที่สินเชื่อแจ้งได้เลย ระบบจะรวมยอดชำระและคำนวณดอกเบี้ยให้เอง งวดสุดท้ายไม่จำเป็นต้องเท่างวดอื่น
+      </div>
       <div class="field full">
-        <label>ยอดชำระแต่ละงวด</label>
+        <label>ตารางผ่อนชำระแต่ละงวด</label>
         <div id="smartLoanInstallments" class="smart-installment-editor"></div>
-        <small>แก้ยอดแต่ละงวดได้เอง เพราะยอดจริงแต่ละเดือนไม่จำเป็นต้องเท่ากัน</small>
+      </div>
+      <div class="loan-auto-summary field full" style="background:var(--bg-color);padding:10px;border-radius:8px;font-size:0.9rem;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>เงินที่ได้รับ</span><strong id="loanBorrowedSummary">฿0</strong></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>ยอดชำระรวม</span><strong id="loanRepaymentSummary">฿0</strong></div>
+        <div style="display:flex;justify-content:space-between;color:var(--danger);"><span>ดอกเบี้ย/ต้นทุนรวมโดยประมาณ</span><strong id="loanCostSummary">฿0</strong></div>
       </div>`;
   }
 
@@ -410,6 +415,16 @@ function smartDebtFields(type,today){
     ${selectField("payer","ผู้จ่ายเจ้าหนี้",[["me","ฉัน"],["partner","แฟน"],["other","คนอื่น"]])}
     <div class="field full debt-form-note">จะแสดงจำนวนงวด จ่ายแล้ว เหลือ ส่วนของฉัน และส่วนของแฟนบนการ์ด</div>`;
 }
+
+
+window.updateSmartLoanSummary = function(){
+  const borrowed=num(byId("borrowedAmount")?.value);
+  const total=[...document.querySelectorAll('#smartLoanInstallments [data-smart="amount"]')].reduce((s,x)=>s+num(x.value),0);
+  const cost=Math.max(0,total-borrowed);
+  if(byId("loanBorrowedSummary"))byId("loanBorrowedSummary").textContent=money(borrowed);
+  if(byId("loanRepaymentSummary"))byId("loanRepaymentSummary").textContent=money(total);
+  if(byId("loanCostSummary"))byId("loanCostSummary").textContent=money(cost);
+};
 
 function renderSmartLoanInstallments(preserve=true){
   const box=byId("smartLoanInstallments");
@@ -445,6 +460,8 @@ function renderSmartDebtForm(type){
   if(type==="seasycash"){
     renderSmartLoanInstallments(false);
     ["installments","firstDueDate"].forEach(id=>byId(id)?.addEventListener("change",()=>renderSmartLoanInstallments(true)));
+    byId("borrowedAmount")?.addEventListener("input", window.updateSmartLoanSummary);
+    if(typeof window.updateSmartLoanSummary === 'function') window.updateSmartLoanSummary();
   }
 }
 
@@ -569,11 +586,9 @@ function saveCurrent(closeAfter=true){
 
     if(t==="seasycash"){
       const borrowed=num(d.borrowedAmount);
-      const interest=num(d.totalInterest);
-      const fee=num(d.totalFee);
       const rows=[...document.querySelectorAll("#smartLoanInstallments .smart-installment-row")];
       const round={
-        id:uid("round"),startDate:d.receiveDate,borrowedAmount:borrowed,totalInterest:interest,totalFee:fee,
+        id:uid("round"),startDate:d.receiveDate,borrowedAmount:borrowed,totalFee:0,
         installmentCount:rows.length,moneyReceived:d.receivedNow==="yes",incomeId:null,
         installments:rows.map((row,i)=>({
           id:uid("inst"),no:i+1,
@@ -582,6 +597,7 @@ function saveCurrent(closeAfter=true){
         }))
       };
       round.totalRepayment=round.installments.reduce((s,x)=>s+num(x.amount),0);
+      round.totalInterest=Math.max(0,round.totalRepayment-borrowed);
       const debt={
         id:debtId,name:d.name,type:"debt",debtKind:"loan",loanRoundMode:true,
         totalDebt:round.totalRepayment,remaining:round.totalRepayment,
@@ -594,7 +610,7 @@ function saveCurrent(closeAfter=true){
         state.incomes.push({
           id:incomeId,name:`${d.name} • รอบกู้ ${thaiDate(d.receiveDate)}`,amount:borrowed,
           date:d.receiveDate,kind:"rotation",
-          note:`เงินกู้/เงินหมุน • ดอกเบี้ย ${money(interest)}${fee?` • ค่าธรรมเนียม ${money(fee)}`:""}`,
+          note:`เงินกู้/เงินหมุน • ยอดชำระรวม ${money(round.totalRepayment)} • ต้นทุนรวมประมาณ ${money(round.totalInterest)}`,
           debtId,loanRoundId:round.id,received:true
         });
         round.incomeId=incomeId;
